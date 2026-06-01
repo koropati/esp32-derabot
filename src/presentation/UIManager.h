@@ -1,0 +1,46 @@
+#pragma once
+#include "InputHandler.h"
+#include "screens/MainScreen.h"
+#include "screens/WifiScanScreen.h"
+#include "screens/WifiPasswordScreen.h"
+#include "screens/SensorScreen.h"
+#include "screens/SettingsScreen.h"
+#include "../domain/interfaces/IDisplay.h"
+#include "../application/SensorUseCase.h"
+#include "../application/WifiUseCase.h"
+#include "../application/BuzzerUseCase.h"
+
+enum class AppScreen { Main, WifiScan, WifiPassword, Sensor, Settings };
+
+class UIManager {
+public:
+    UIManager(IDisplay*      display,
+              SensorUseCase* sensor,
+              WifiUseCase*   wifi,
+              BuzzerUseCase* buzzer);
+    ~UIManager();
+    void begin();
+    void pollButtons();  // call every loop iteration — fast, no I2C
+    void render();       // call on timer (100ms) — does I2C display transfer
+    void update();       // convenience: pollButtons + render (legacy)
+
+private:
+    void      _handleNavigation();
+    void      _handleDone();
+    void      transitionTo(AppScreen next);
+    IScreen*  currentScreen();
+
+    IDisplay*       _display;
+    SensorUseCase*  _sensor;
+    WifiUseCase*    _wifi;
+    BuzzerUseCase*  _buzzer;
+
+    InputHandler        _input;
+    AppScreen           _current = AppScreen::Main;
+
+    MainScreen          _mainScreen;
+    WifiScanScreen      _wifiScanScreen;
+    WifiPasswordScreen* _wifiPassScreen = nullptr;
+    SensorScreen        _sensorScreen;
+    SettingsScreen      _settingsScreen;
+};

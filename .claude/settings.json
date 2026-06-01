@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /home/dewok/Firmware/esp32-derabot/src/config \\\\ *)",
+      "Read(//dev/**)",
+      "Bash(dmesg)",
+      "Bash(lsusb)",
+      "Read(//home/dewok/.platformio/penv/bin/**)",
+      "Bash(pip show *)",
+      "Read(//home/dewok/.local/bin/**)",
+      "Bash(pip3 list *)",
+      "Bash(pip3 install *)",
+      "Bash(~/.local/bin/pio --version)",
+      "Bash(python3 -m platformio --version)",
+      "Bash(python3 -m platformio run)",
+      "Bash(~/.local/bin/pio run *)",
+      "Bash(sudo usermod -a -G uucp dewok)",
+      "Bash(sg uucp *)",
+      "Bash(pip3 show *)",
+      "Bash(python3 -c \"import serial; print\\('ok'\\)\")",
+      "Read(//home/dewok/.local/lib/**)",
+      "Bash(pip3 --version)"
+    ],
+    "additionalDirectories": [
+      "/home/dewok/Firmware/esp32-derabot/src"
+    ]
+  }
+}
