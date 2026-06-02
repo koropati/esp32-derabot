@@ -16,6 +16,12 @@ public:
     String  getIp()   const;
     WifiCredentials getSaved() const { return _saved; }
 
+    // Config-portal access point (credentials entered from a phone/laptop)
+    bool   startAP();
+    void   stopAP();
+    String apIp()      const;
+    int    apClients() const;
+
 private:
     IWifiManager*   _wifi;
     IStorage*       _storage;

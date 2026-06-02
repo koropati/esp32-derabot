@@ -10,4 +10,9 @@ public:
     std::vector<WifiNetwork> scan() override;
     int32_t getRssi() const override;
     String  getIp()   const override;
+
+    bool    startAP(const String& ssid, const String& pass) override;
+    void    stopAP() override;
+    String  getApIp()   const override;
+    int     apClients() const override;
 };

@@ -1,4 +1,5 @@
 #include "WifiUseCase.h"
+#include "../config/config.h"
 
 WifiUseCase::WifiUseCase(IWifiManager* wifi, IStorage* storage)
     : _wifi(wifi), _storage(storage) {}
@@ -28,3 +29,8 @@ bool WifiUseCase::isConnected() const { return _wifi->isConnected(); }
 std::vector<WifiNetwork> WifiUseCase::scan() { return _wifi->scan(); }
 int32_t WifiUseCase::getRssi() const { return _wifi->getRssi(); }
 String  WifiUseCase::getIp()   const { return _wifi->getIp(); }
+
+bool   WifiUseCase::startAP()        { return _wifi->startAP(Config::Ap::SSID, Config::Ap::PASS); }
+void   WifiUseCase::stopAP()         { _wifi->stopAP(); }
+String WifiUseCase::apIp()     const { return _wifi->getApIp(); }
+int    WifiUseCase::apClients()const { return _wifi->apClients(); }

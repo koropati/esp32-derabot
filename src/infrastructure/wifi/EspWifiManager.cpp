@@ -35,3 +35,23 @@ std::vector<WifiNetwork> EspWifiManager::scan() {
 
 int32_t EspWifiManager::getRssi() const { return WiFi.RSSI(); }
 String  EspWifiManager::getIp()   const { return WiFi.localIP().toString(); }
+
+bool EspWifiManager::startAP(const String& ssid, const String& pass) {
+    // AP_STA keeps the station side alive so we can still scan and connect to
+    // the network the user picks while the config hotspot is up.
+    WiFi.mode(WIFI_AP_STA);
+    bool ok = pass.isEmpty()
+        ? WiFi.softAP(ssid.c_str())
+        : WiFi.softAP(ssid.c_str(), pass.c_str());
+    Serial.printf("[WiFi] SoftAP '%s' %s, IP=%s\n",
+                  ssid.c_str(), ok ? "up" : "FAILED", WiFi.softAPIP().toString().c_str());
+    return ok;
+}
+
+void EspWifiManager::stopAP() {
+    WiFi.softAPdisconnect(true);
+    WiFi.mode(WIFI_STA);
+}
+
+String EspWifiManager::getApIp()   const { return WiFi.softAPIP().toString(); }
+int    EspWifiManager::apClients() const { return WiFi.softAPgetStationNum(); }

@@ -6,7 +6,7 @@
 
 class MainScreen : public IScreen {
 public:
-    enum class NavTo { None, WifiScan, Sensor, Settings };
+    enum class NavTo { None, WifiScan, WifiPortal, Sensor, Stock, Settings };
 
     MainScreen(SensorUseCase* sensor, WifiUseCase* wifi, BuzzerUseCase* buzzer);
     void  enter() override;

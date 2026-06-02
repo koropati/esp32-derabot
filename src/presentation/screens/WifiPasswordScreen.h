@@ -14,7 +14,7 @@ public:
 private:
     String _ssid;
     String _password;
-    int    _charIdx   = 0;
+    int    _pickIdx   = 0;
     bool   _done      = false;
     bool   _confirmed = false;
 
@@ -25,4 +25,14 @@ private:
         "0123456789"
         " !@#$%^&*()-_=+[]{}|;:',.<>?/";
     static constexpr int CHARSET_LEN = 95;
+
+    // The picker scrolls over the charset plus two action tokens at the end,
+    // so the whole flow works with only press-down (no long-press needed):
+    //   index CHARSET_LEN     -> DEL (backspace)
+    //   index CHARSET_LEN + 1 -> OK  (submit; empty = cancel/back)
+    static constexpr int IDX_DEL  = CHARSET_LEN;
+    static constexpr int IDX_OK   = CHARSET_LEN + 1;
+    static constexpr int PICK_LEN = CHARSET_LEN + 2;
+
+    String _pickLabel(int idx) const;  // display label for a picker position
 };

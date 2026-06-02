@@ -12,12 +12,14 @@
 #include "infrastructure/wifi/EspWifiManager.h"
 #include "infrastructure/storage/NvsStorage.h"
 #include "infrastructure/buzzer/EspBuzzer.h"
+#include "infrastructure/stock/YahooStockClient.h"
 
 // Application
 #include "application/SensorUseCase.h"
 #include "application/WifiUseCase.h"
 #include "application/MqttUseCase.h"
 #include "application/BuzzerUseCase.h"
+#include "application/StockUseCase.h"
 
 // Presentation
 #include "presentation/UIManager.h"
@@ -31,8 +33,9 @@ static Inmp441Sensor  inmp441;
 static VoltSensor     voltSensor;
 static EspWifiManager wifiMgr;
 static NvsStorage     storage;
-static HiveMqClient   mqttClient;
-static EspBuzzer      buzzer;
+static HiveMqClient     mqttClient;
+static EspBuzzer        buzzer;
+static YahooStockClient stockClient;
 
 // ---------------------------------------------------------------------------
 // Use cases
@@ -41,6 +44,7 @@ static SensorUseCase* sensorUC = nullptr;
 static WifiUseCase*   wifiUC   = nullptr;
 static MqttUseCase*   mqttUC   = nullptr;
 static BuzzerUseCase* buzzerUC = nullptr;
+static StockUseCase*  stockUC  = nullptr;
 
 // ---------------------------------------------------------------------------
 // UI
@@ -50,9 +54,11 @@ static UIManager* ui = nullptr;
 // ---------------------------------------------------------------------------
 // Loop timers
 // ---------------------------------------------------------------------------
-static uint32_t lastSensorMs  = 0;
-static uint32_t lastMqttMs    = 0;
-static uint32_t lastDisplayMs = 0;
+static uint32_t lastSensorMs   = 0;
+static uint32_t lastMqttPubMs  = 0;
+static uint32_t nextMqttConnMs = 0;
+static uint32_t mqttBackoffMs  = Config::Timing::MQTT_RETRY_MIN_MS;
+static uint32_t lastDisplayMs  = 0;
 
 // ---------------------------------------------------------------------------
 
@@ -124,9 +130,13 @@ void setup() {
     // Buzzer thresholds (loaded from NVS)
     buzzerUC = new BuzzerUseCase(&buzzer, &storage);
     buzzerUC->begin();
+    buzzerUC->playStartup();  // iconic Nokia-style power-on chime
+
+    // Stock (IHSG via Yahoo Finance)
+    stockUC = new StockUseCase(&stockClient);
 
     // UI
-    ui = new UIManager(&display, sensorUC, wifiUC, buzzerUC);
+    ui = new UIManager(&display, sensorUC, wifiUC, buzzerUC, stockUC);
     ui->begin();
 
     // Try auto-connect to saved WiFi
@@ -162,14 +172,26 @@ void loop() {
         buzzerUC->check(sensorUC->lastData());
     }
 
-    // MQTT publish on schedule (only when connected)
+    // MQTT — keep the session serviced, publish on schedule when connected.
+    // The TLS connect is blocking (seconds when the broker is unreachable), so
+    // it is throttled with exponential backoff: a failing broker can no longer
+    // freeze the UI every MQTT_MS. Button input is unaffected regardless, since
+    // it runs in its own task, but this keeps the display/MQTT loop responsive.
     if (wifiUC->isConnected()) {
         mqttUC->loop();
-        if (now - lastMqttMs >= Config::Timing::MQTT_MS) {
-            lastMqttMs = now;
-            if (mqttUC->ensureConnected()) {
+        if (mqttUC->isConnected()) {
+            mqttBackoffMs = Config::Timing::MQTT_RETRY_MIN_MS;  // healthy — reset
+            if (now - lastMqttPubMs >= Config::Timing::MQTT_MS) {
+                lastMqttPubMs = now;
                 mqttUC->publishSensor(sensorUC->lastData());
             }
+        } else if (now >= nextMqttConnMs) {
+            bool ok = mqttUC->ensureConnected();
+            nextMqttConnMs = millis() + (ok ? Config::Timing::MQTT_RETRY_MIN_MS
+                                            : mqttBackoffMs);
+            if (!ok)
+                mqttBackoffMs = min(mqttBackoffMs * 2,
+                                    Config::Timing::MQTT_RETRY_MAX_MS);
         }
     }
 

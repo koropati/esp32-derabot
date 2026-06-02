@@ -5,7 +5,7 @@ class EspBuzzer : public IBuzzer {
 public:
     bool begin()   override;
     void beep(int freq, int durationMs) override;
-    void on(int freq)  override;
+    void on(int freq, uint8_t duty = 128) override;
     void off()     override;
     bool isOn() const  override { return _on; }
 

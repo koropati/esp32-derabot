@@ -19,7 +19,14 @@
       "Bash(pip3 show *)",
       "Bash(python3 -c \"import serial; print\\('ok'\\)\")",
       "Read(//home/dewok/.local/lib/**)",
-      "Bash(pip3 --version)"
+      "Bash(pip3 --version)",
+      "Bash(pio run *)",
+      "Bash(timeout 9 python3 -c ' *)",
+      "Bash(pio pkg *)",
+      "Bash(timeout 8 cat /dev/ttyACM0)",
+      "Read(//tmp/**)",
+      "Bash(grep -a -v '^$')",
+      "Bash(timeout 7 cat /dev/ttyACM0)"
     ],
     "additionalDirectories": [
       "/home/dewok/Firmware/esp32-derabot/src"

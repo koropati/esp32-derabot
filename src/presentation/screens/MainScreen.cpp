@@ -1,8 +1,10 @@
 #include "MainScreen.h"
 #include <Arduino.h>
 
-static const char* MENU_ITEMS[] = { "WiFi Setup", "Sensor Detail", "Settings" };
-static constexpr int MENU_COUNT = 3;
+static const char* MENU_ITEMS[] = {
+    "WiFi via HP", "WiFi (Tombol)", "Sensor Detail", "Bursa IHSG", "Settings"
+};
+static constexpr int MENU_COUNT = 5;
 
 MainScreen::MainScreen(SensorUseCase* sensor, WifiUseCase* wifi, BuzzerUseCase* buzzer)
     : _sensor(sensor), _wifi(wifi), _buzzer(buzzer) {}
@@ -84,11 +86,10 @@ void MainScreen::drawSummary(IDisplay& d, const SensorData& data) {
 }
 
 void MainScreen::drawMenu(IDisplay& d) {
-    d.drawText(0, 14, "== MENU ==");
     for (int i = 0; i < MENU_COUNT; i++) {
         String line = (i == _menuIdx) ? "> " : "  ";
         line += MENU_ITEMS[i];
-        d.drawText(0, 24 + i * 11, line);
+        d.drawText(0, 14 + i * 8, line);
     }
     d.drawLine(0, 55, d.width() - 1, 55);
     d.drawText(0, 57, "<Atas >Bwh  Ctr:Pilih");
@@ -117,12 +118,11 @@ void MainScreen::onButton(ButtonEvent evt) {
             _menuIdx = (_menuIdx + 1) % MENU_COUNT;
             break;
         case ButtonEvent::Center:
-            if (_menuIdx == 0) _navTo = NavTo::WifiScan;
-            if (_menuIdx == 1) _navTo = NavTo::Sensor;
-            if (_menuIdx == 2) _navTo = NavTo::Settings;
-            break;
-        case ButtonEvent::LongCenter:
-            // intentionally ignored — menu stays open until explicit nav
+            if (_menuIdx == 0) _navTo = NavTo::WifiPortal;
+            if (_menuIdx == 1) _navTo = NavTo::WifiScan;
+            if (_menuIdx == 2) _navTo = NavTo::Sensor;
+            if (_menuIdx == 3) _navTo = NavTo::Stock;
+            if (_menuIdx == 4) _navTo = NavTo::Settings;
             break;
         default:
             break;

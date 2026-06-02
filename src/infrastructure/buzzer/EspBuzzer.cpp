@@ -14,9 +14,9 @@ bool EspBuzzer::begin() {
     return true;
 }
 
-void EspBuzzer::on(int freq) {
+void EspBuzzer::on(int freq, uint8_t duty) {
     ledcSetup(_channel, freq, LEDC_RES);
-    ledcWrite(_channel, 128);  // 50% duty = audible square wave
+    ledcWrite(_channel, duty);  // duty controls volume/harshness (128 = 50%)
     _on = true;
 }
 

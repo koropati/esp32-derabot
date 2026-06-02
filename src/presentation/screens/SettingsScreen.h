@@ -23,6 +23,9 @@ private:
         float       min;
         float       max;
     };
-    static constexpr int FIELD_COUNT = 7;
+    // Alarm, 5 value fields, then the two action rows below.
+    static constexpr int FIELD_COUNT  = 8;
+    static constexpr int SAVE_FIELD   = 6;  // "Simpan"
+    static constexpr int CANCEL_FIELD = 7;  // "Batal"
     Field _fields[FIELD_COUNT];
 };

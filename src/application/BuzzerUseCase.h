@@ -5,14 +5,24 @@
 #include "../domain/entities/ThresholdConfig.h"
 #include <Arduino.h>
 
+// A single tone in a melody. freq == 0 means a rest.
+struct Note {
+    uint16_t freq;
+    uint16_t ms;
+};
+
 class BuzzerUseCase {
 public:
     BuzzerUseCase(IBuzzer* buzzer, IStorage* storage);
     bool begin();
     void check(const SensorData& data);
     void silence();
-    void click();  // non-blocking click — starts beep, tick() stops it
-    void tick();   // call every loop to manage click sound timer
+    void click();          // non-blocking click — starts beep, tick() stops it
+    void stopClick();      // silence a pending click NOW (before a blocking call)
+    void tick();           // call every loop: advances melody / click timers
+    void playStartup();    // iconic Nokia-style power-on fanfare (blocking, boot only)
+    void playWifiTune();   // gentle ascending jingle (WiFi setup portal)
+    void playStockTune();  // gentle descending jingle (loading IHSG data)
     void updateThreshold(const ThresholdConfig& cfg);
     ThresholdConfig getThreshold() const { return _threshold; }
     bool isTriggered() const { return _triggered; }
@@ -20,6 +30,7 @@ public:
 
 private:
     bool _detectCharging(float voltage);
+    void _startMelody(const Note* m, int len, bool loop, uint8_t duty);
 
     IBuzzer*        _buzzer;
     IStorage*       _storage;
@@ -29,6 +40,14 @@ private:
     uint8_t         _alarmCount    = 0;
     uint32_t        _snoozeUntilMs = 0;
     uint32_t        _clickUntilMs  = 0;  // non-blocking click end time
+
+    // Non-blocking melody player
+    const Note*     _melody       = nullptr;
+    int             _melodyLen    = 0;
+    int             _melodyIdx    = 0;
+    bool            _melodyLoop   = false;
+    uint8_t         _melodyDuty   = 128;
+    uint32_t        _noteUntilMs  = 0;
 
     // Ring buffer of last 5 voltage readings for charging detection
     static constexpr int VOLT_HIST = 7;

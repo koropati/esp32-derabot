@@ -14,6 +14,7 @@ void SettingsScreen::enter() {
     _fields[4] = { "dBMaks",  &_cfg.soundMax, 5.0f,   30.0f, 130.0f };
     _fields[5] = { "VoltMin", &_cfg.voltMin,  0.1f,    2.5f,   4.2f };
     _fields[6] = { "Simpan",  nullptr,        0,      0,       0    };
+    _fields[7] = { "Batal",   nullptr,        0,      0,       0    };
 }
 
 void SettingsScreen::update(IDisplay& d) {
@@ -33,7 +34,7 @@ void SettingsScreen::update(IDisplay& d) {
                 (idx == _field) ? ">" : " ",
                 _fields[idx].label,
                 _cfg.enabled ? "AKTIF" : "NONAKTIF");
-        } else if (idx == FIELD_COUNT - 1) {  // Save button
+        } else if (idx == SAVE_FIELD || idx == CANCEL_FIELD) {  // action rows
             snprintf(buf, sizeof(buf), "%s[ %s ]",
                 (idx == _field) ? ">" : " ",
                 _fields[idx].label);
@@ -47,10 +48,10 @@ void SettingsScreen::update(IDisplay& d) {
     }
 
     d.drawLine(0, 55, d.width() - 1, 55);
-    if (_field == FIELD_COUNT - 1)
-        d.drawText(0, 57, "Ctr:Simpan  LC:Batal");
+    if (_field == SAVE_FIELD || _field == CANCEL_FIELD)
+        d.drawText(0, 57, "Ctr:Pilih  < >:Pindah");
     else
-        d.drawText(0, 57, "< >Atur  Ctr:Lanjut");
+        d.drawText(0, 57, "< >:Atur  Ctr:Lanjut");
     d.flush();
 }
 
@@ -60,25 +61,28 @@ void SettingsScreen::onButton(ButtonEvent evt) {
         case ButtonEvent::Left:
             if (_field == 0)
                 _cfg.enabled = false;
-            else if (_field < FIELD_COUNT - 1)  // not the Simpan row
+            else if (f.val)                       // value field: decrease
                 *f.val = max(f.min, *f.val - f.step);
+            else                                  // action row: step back a field
+                _field = (_field - 1 + FIELD_COUNT) % FIELD_COUNT;
             break;
         case ButtonEvent::Right:
             if (_field == 0)
                 _cfg.enabled = true;
-            else if (_field < FIELD_COUNT - 1)
+            else if (f.val)                       // value field: increase
                 *f.val = min(f.max, *f.val + f.step);
+            else                                  // action row: step forward a field
+                _field = (_field + 1) % FIELD_COUNT;
             break;
         case ButtonEvent::Center:
-            if (_field == FIELD_COUNT - 1) {
-                _buzzer->updateThreshold(_cfg);  // Center on Simpan = save
+            if (_field == SAVE_FIELD) {
+                _buzzer->updateThreshold(_cfg);   // save
                 _done = true;
+            } else if (_field == CANCEL_FIELD) {
+                _done = true;                     // cancel without saving
             } else {
-                _field = (_field + 1) % FIELD_COUNT;
+                _field = (_field + 1) % FIELD_COUNT;  // next field
             }
-            break;
-        case ButtonEvent::LongCenter:
-            _done = true;  // cancel without saving
             break;
         default:
             break;
