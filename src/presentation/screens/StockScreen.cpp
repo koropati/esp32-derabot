@@ -1,4 +1,5 @@
 #include "StockScreen.h"
+#include "../LoadingWindow.h"
 #include <math.h>
 
 StockScreen::StockScreen(StockUseCase* stock, WifiUseCase* wifi, BuzzerUseCase* buzzer)
@@ -32,14 +33,11 @@ void StockScreen::update(IDisplay& d) {
     if (_needFetch) {
         if (_buzzer) _buzzer->stopClick();   // kill the menu click before blocking
 
-        // Only show a "loading" frame on the very first load (no data yet). Once
-        // we already have data, keep the current value/graph on screen during the
-        // (blocking) fetch and just refresh in place — so updates look seamless.
-        if (!_stock->data().valid) {
-            d.clear();
-            d.drawText(0, 0, "Bursa IHSG");
-            d.drawLine(0, 11, d.width() - 1, 11);
-            d.drawText(10, 30, "Memuat data...");
+        // Show the loading window for user-initiated loads (screen open / manual
+        // refresh) or when there is no data yet. The silent 60s auto-refresh keeps
+        // the current value/graph on screen and refreshes in place — seamless.
+        if (_announce || !_stock->data().valid) {
+            drawLoadingWindow(d, "Bursa IHSG", "Memuat data...");
             d.flush();
         }
 

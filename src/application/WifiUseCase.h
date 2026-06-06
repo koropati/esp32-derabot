@@ -14,6 +14,7 @@ public:
     std::vector<WifiNetwork> scan();
     int32_t getRssi() const;
     String  getIp()   const;
+    void    setPowerSave(bool on);
     WifiCredentials getSaved() const { return _saved; }
 
     // Config-portal access point (credentials entered from a phone/laptop)

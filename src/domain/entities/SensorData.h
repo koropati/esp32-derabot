@@ -10,6 +10,8 @@ struct SensorData {
     int      batteryPct  = 0;      // 0-100
     int32_t  rssi        = 0;      // dBm
     int      signalPct   = 0;      // 0-100
+    float    heading     = 0.0f;   // compass heading 0-360 deg (GY-271)
+    bool     compassOk   = false;  // true if GY-271 present & read
     uint32_t timestamp   = 0;      // millis()
     bool     valid       = false;
 };

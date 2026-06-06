@@ -9,6 +9,8 @@ public:
     bool loadWifi(WifiCredentials& creds) override;
     bool saveThreshold(const ThresholdConfig& cfg) override;
     bool loadThreshold(ThresholdConfig& cfg) override;
+    bool saveEco(bool on) override;
+    bool loadEco(bool& on) override;
     void clear() override;
 
 private:

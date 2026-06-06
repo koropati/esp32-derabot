@@ -10,5 +10,7 @@ public:
     virtual bool loadWifi(WifiCredentials& creds) = 0;
     virtual bool saveThreshold(const ThresholdConfig& cfg) = 0;
     virtual bool loadThreshold(ThresholdConfig& cfg) = 0;
+    virtual bool saveEco(bool on) = 0;             // power-save preference
+    virtual bool loadEco(bool& on) = 0;
     virtual void clear() = 0;
 };

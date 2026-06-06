@@ -29,6 +29,7 @@ bool WifiUseCase::isConnected() const { return _wifi->isConnected(); }
 std::vector<WifiNetwork> WifiUseCase::scan() { return _wifi->scan(); }
 int32_t WifiUseCase::getRssi() const { return _wifi->getRssi(); }
 String  WifiUseCase::getIp()   const { return _wifi->getIp(); }
+void    WifiUseCase::setPowerSave(bool on) { _wifi->setPowerSave(on); }
 
 bool   WifiUseCase::startAP()        { return _wifi->startAP(Config::Ap::SSID, Config::Ap::PASS); }
 void   WifiUseCase::stopAP()         { _wifi->stopAP(); }

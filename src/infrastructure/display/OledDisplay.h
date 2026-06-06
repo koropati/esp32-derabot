@@ -16,6 +16,8 @@ public:
     void drawBitmap(int x, int y, const uint8_t* bmp, int w, int h) override;
     int  width()  const override { return _d ? _d->width()  : Config::Display::W; }
     int  height() const override { return _d ? _d->height() : Config::Display::H; }
+    void setOn(bool on) override;
+    void dim(bool dim)  override;
     bool isReady() const { return _d != nullptr; }
 
 private:

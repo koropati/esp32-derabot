@@ -18,8 +18,16 @@ namespace Pins {
 }
 
 namespace I2cAddr {
-    constexpr uint8_t BME280 = 0x76;
-    constexpr uint8_t OLED   = 0x3C;
+    constexpr uint8_t BME280  = 0x76;
+    constexpr uint8_t OLED    = 0x3C;
+    constexpr uint8_t QMC5883 = 0x0D;  // GY-271 (QMC5883L variant)
+    constexpr uint8_t HMC5883 = 0x1E;  // GY-271 (HMC5883L variant)
+}
+
+namespace Compass {
+    // Magnetic declination for your location (degrees, East positive). Leave 0
+    // for raw magnetic north; set per-city for true north. e.g. Jakarta ~ +0.5.
+    constexpr float DECLINATION = 0.0f;
 }
 
 namespace Mqtt {
@@ -59,8 +67,8 @@ namespace Voltage {
     constexpr float VREF  = 3.3f;
     constexpr float R1    = 100000.0f;  // voltage divider upper resistor (Ohm)
     constexpr float R2    = 100000.0f;  // voltage divider lower resistor (Ohm)
-    constexpr float V_MAX = 4.2f;       // 100% (LiPo full)
-    constexpr float V_MIN = 3.3f;       // 0% (safe cutoff)
+    constexpr float V_MAX = 3.7f;       // 100% — baterai 3.7V dianggap penuh
+    constexpr float V_MIN = 3.2f;       // 0% — di bawah ini dianggap habis
     constexpr int   ADC_MAX = 4095;
 
     // Calibration multiplier applied to the final battery voltage. Corrects for
@@ -69,6 +77,22 @@ namespace Voltage {
     constexpr float CAL     = 2.29f;
     constexpr int   SAMPLES = 16;       // ADC samples averaged per reading
     constexpr bool  DEBUG   = false;    // set true to print ADC mV for re-calibration
+}
+
+namespace Power {
+    // Eco / power-save mode. When active: CPU clock is lowered, WiFi radio uses
+    // modem-sleep, and the OLED dims then turns off after inactivity.
+    constexpr uint32_t CPU_HI_MHZ = 160;   // normal CPU clock
+    constexpr uint32_t CPU_LO_MHZ = 80;    // eco CPU clock
+
+    // Auto-activate eco when battery drops to LOW_BATT_PCT, auto-release once it
+    // recovers past RESUME_PCT (hysteresis avoids flapping near the threshold).
+    constexpr int LOW_BATT_PCT = 20;
+    constexpr int RESUME_PCT   = 35;
+
+    // OLED inactivity timers (only while eco is active). Dim first, then off.
+    constexpr uint32_t SCREEN_DIM_MS = 15000;
+    constexpr uint32_t SCREEN_OFF_MS = 30000;
 }
 
 namespace Timing {

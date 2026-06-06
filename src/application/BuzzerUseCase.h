@@ -20,7 +20,7 @@ public:
     void click();          // non-blocking click — starts beep, tick() stops it
     void stopClick();      // silence a pending click NOW (before a blocking call)
     void tick();           // call every loop: advances melody / click timers
-    void playStartup();    // iconic Nokia-style power-on fanfare (blocking, boot only)
+    void playStartup();    // short power-on blip (blocking, boot only)
     void playWifiTune();   // gentle ascending jingle (WiFi setup portal)
     void playStockTune();  // gentle descending jingle (loading IHSG data)
     void updateThreshold(const ThresholdConfig& cfg);

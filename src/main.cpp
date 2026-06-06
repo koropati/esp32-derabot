@@ -7,6 +7,7 @@
 #include "infrastructure/sensors/Bme280Sensor.h"
 #include "infrastructure/sensors/Inmp441Sensor.h"
 #include "infrastructure/sensors/VoltSensor.h"
+#include "infrastructure/sensors/Gy271Compass.h"
 #include "infrastructure/display/OledDisplay.h"
 #include "infrastructure/mqtt/HiveMqClient.h"
 #include "infrastructure/wifi/EspWifiManager.h"
@@ -20,6 +21,7 @@
 #include "application/MqttUseCase.h"
 #include "application/BuzzerUseCase.h"
 #include "application/StockUseCase.h"
+#include "application/PowerUseCase.h"
 
 // Presentation
 #include "presentation/UIManager.h"
@@ -31,6 +33,7 @@ static OledDisplay    display;
 static Bme280Sensor   bme280;
 static Inmp441Sensor  inmp441;
 static VoltSensor     voltSensor;
+static Gy271Compass   compass;
 static EspWifiManager wifiMgr;
 static NvsStorage     storage;
 static HiveMqClient     mqttClient;
@@ -45,6 +48,7 @@ static WifiUseCase*   wifiUC   = nullptr;
 static MqttUseCase*   mqttUC   = nullptr;
 static BuzzerUseCase* buzzerUC = nullptr;
 static StockUseCase*  stockUC  = nullptr;
+static PowerUseCase*  powerUC  = nullptr;
 
 // ---------------------------------------------------------------------------
 // UI
@@ -62,10 +66,22 @@ static uint32_t lastDisplayMs  = 0;
 
 // ---------------------------------------------------------------------------
 
-static void showSplash(const char* msg) {
+// Branded boot screen: framed title, subtitle, a status line and a progress bar
+// that fills as init proceeds. `pct` 0..100 drives the bar.
+static void bootScreen(const char* status, int pct) {
+    const int W = Config::Display::W;
+    const int H = Config::Display::H;
     display.clear();
-    display.drawText(0, 16, " DeraBot v1.0");
-    display.drawText(0, 30, msg);
+    display.drawRect(0, 0, W, H, false);                 // outer frame
+    display.drawText(22, 7, "DeraBot", 2);               // large title (centered)
+    display.drawText(7, 28, "Environment Monitor");      // subtitle (centered)
+    display.drawLine(8, 40, W - 8, 40);
+    display.drawText(6, 44, status);
+
+    const int bx = 8, by = 53, bw = W - 16, bh = 8;
+    display.drawRect(bx, by, bw, bh, false);             // progress outline
+    int fill = (bw - 4) * constrain(pct, 0, 100) / 100;
+    if (fill > 0) display.drawRect(bx + 2, by + 2, fill, bh - 4, true);
     display.flush();
 }
 
@@ -103,18 +119,21 @@ void setup() {
         Serial.println("[OLED] FAILED - device will run without display");
     }
 
-    showSplash(" Initializing...");
-    delay(800);
+    bootScreen("Memulai sistem...", 10);
+    delay(600);
 
     // Sensors
-    sensorUC = new SensorUseCase({ &bme280, &inmp441, &voltSensor });
+    bootScreen("Sensor...", 30);
+    sensorUC = new SensorUseCase({ &bme280, &inmp441, &voltSensor, &compass });
     sensorUC->begin();
 
     // WiFi
+    bootScreen("WiFi...", 50);
     wifiUC = new WifiUseCase(&wifiMgr, &storage);
     wifiUC->begin();
 
     // MQTT
+    bootScreen("MQTT...", 65);
     mqttUC = new MqttUseCase(&mqttClient);
     mqttUC->begin();
 
@@ -128,24 +147,30 @@ void setup() {
     });
 
     // Buzzer thresholds (loaded from NVS)
+    bootScreen("Buzzer...", 75);
     buzzerUC = new BuzzerUseCase(&buzzer, &storage);
     buzzerUC->begin();
-    buzzerUC->playStartup();  // iconic Nokia-style power-on chime
+    buzzerUC->playStartup();  // short power-on blip
 
     // Stock (IHSG via Yahoo Finance)
     stockUC = new StockUseCase(&stockClient);
 
+    // Power-save manager (loads eco preference, applies CPU/WiFi state)
+    powerUC = new PowerUseCase(&display, wifiUC, &storage);
+    powerUC->begin();
+
     // UI
-    ui = new UIManager(&display, sensorUC, wifiUC, buzzerUC, stockUC);
+    bootScreen("Antarmuka...", 85);
+    ui = new UIManager(&display, sensorUC, wifiUC, buzzerUC, stockUC, powerUC, &compass);
     ui->begin();
 
     // Try auto-connect to saved WiFi
-    showSplash(" Connecting WiFi...");
+    bootScreen("Menyambung WiFi...", 92);
     if (wifiUC->autoConnect()) {
-        showSplash((" Got: " + wifiUC->getIp()).c_str());
+        bootScreen(("Siap! " + wifiUC->getIp()).c_str(), 100);
         delay(1200);
     } else {
-        showSplash(" No saved WiFi.");
+        bootScreen("Siap (tanpa WiFi)", 100);
         delay(1200);
     }
 }
@@ -170,6 +195,9 @@ void loop() {
 
         // Check thresholds and trigger buzzer if needed
         buzzerUC->check(sensorUC->lastData());
+
+        // Feed battery level to power manager — auto-enables eco when low
+        powerUC->onBattery(sensorUC->lastData().batteryPct);
     }
 
     // MQTT — keep the session serviced, publish on schedule when connected.

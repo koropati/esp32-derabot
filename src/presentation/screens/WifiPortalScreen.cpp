@@ -1,18 +1,18 @@
 #include "WifiPortalScreen.h"
 #include "../../config/config.h"
+#include "../LoadingWindow.h"
 
 WifiPortalScreen::WifiPortalScreen(WifiUseCase* wifi, BuzzerUseCase* buzzer)
     : _wifi(wifi), _buzzer(buzzer) {}
 
 void WifiPortalScreen::enter() {
-    _state     = St::Serving;
+    // Defer the blocking AP bring-up (startAP + WiFi scan) to the first update()
+    // so a loading window can be drawn on screen during it.
+    _state     = St::Starting;
     _done      = false;
     _attempted = false;
     _failed    = false;
     if (_buzzer) _buzzer->stopClick();      // kill the menu click before blocking
-    _wifi->startAP();
-    _portal.begin([w = _wifi]() { return w->scan(); });  // blocking scan first
-    if (_buzzer) _buzzer->playWifiTune();   // then the chime, so tick() can advance it
 }
 
 void WifiPortalScreen::exit() {
@@ -33,14 +33,21 @@ void WifiPortalScreen::tick() {
 }
 
 void WifiPortalScreen::update(IDisplay& d) {
-    // Perform the (blocking) connect here, after drawing a "please wait" frame.
+    // Bring the soft-AP + web portal up here (not in enter()) so the loading
+    // window stays on screen during the blocking AP start + WiFi scan.
+    if (_state == St::Starting) {
+        drawLoadingWindow(d, "Setup WiFi via HP", "Mengaktifkan AP...");
+        d.flush();
+        _wifi->startAP();
+        _portal.begin([w = _wifi]() { return w->scan(); });  // blocking scan
+        if (_buzzer) _buzzer->playWifiTune();  // chime after; tick() advances it
+        _state = St::Serving;
+        return;
+    }
+
+    // Perform the (blocking) connect here, after drawing a loading window.
     if (_state == St::Connecting && !_attempted) {
-        d.clear();
-        d.drawText(0, 0, "Menyimpan & hubungkan");
-        d.drawLine(0, 11, d.width() - 1, 11);
-        d.drawText(0, 18, "Ke:");
-        d.drawText(0, 30, _targetSsid.substring(0, 21));
-        d.drawText(0, 48, "Mohon tunggu...");
+        drawLoadingWindow(d, "Menghubungkan", _targetSsid.substring(0, 18));
         d.flush();
 
         _attempted = true;

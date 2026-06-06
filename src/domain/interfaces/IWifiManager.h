@@ -13,6 +13,7 @@ public:
     virtual std::vector<WifiNetwork> scan() = 0;
     virtual int32_t getRssi() const = 0;
     virtual String  getIp()   const = 0;
+    virtual void    setPowerSave(bool on) = 0;  // WiFi modem-sleep on/off
 
     // Soft-AP (config portal) support
     virtual bool    startAP(const String& ssid, const String& pass) = 0;

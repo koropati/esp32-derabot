@@ -61,3 +61,12 @@ void OledDisplay::drawRect(int x, int y, int w, int h, bool filled) {
 void OledDisplay::drawBitmap(int x, int y, const uint8_t* bmp, int w, int h) {
     if (_d) _d->drawBitmap(x, y, bmp, w, h, SSD1306_WHITE);
 }
+
+void OledDisplay::setOn(bool on) {
+    // Sleep/wake the panel — the controller drops to ~uA when off (power save).
+    if (_d) _d->ssd1306_command(on ? SSD1306_DISPLAYON : SSD1306_DISPLAYOFF);
+}
+
+void OledDisplay::dim(bool dim) {
+    if (_d) _d->dim(dim);  // lowers contrast/segment current
+}

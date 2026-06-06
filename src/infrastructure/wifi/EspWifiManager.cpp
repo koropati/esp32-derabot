@@ -36,6 +36,12 @@ std::vector<WifiNetwork> EspWifiManager::scan() {
 int32_t EspWifiManager::getRssi() const { return WiFi.RSSI(); }
 String  EspWifiManager::getIp()   const { return WiFi.localIP().toString(); }
 
+void EspWifiManager::setPowerSave(bool on) {
+    // Modem-sleep: the radio parks between AP beacons. Keeps the connection (and
+    // MQTT) alive while cutting average current substantially.
+    WiFi.setSleep(on ? WIFI_PS_MIN_MODEM : WIFI_PS_NONE);
+}
+
 bool EspWifiManager::startAP(const String& ssid, const String& pass) {
     // AP_STA keeps the station side alive so we can still scan and connect to
     // the network the user picks while the config hotspot is up.

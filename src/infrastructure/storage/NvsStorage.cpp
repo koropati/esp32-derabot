@@ -2,6 +2,7 @@
 
 static constexpr const char* NS_WIFI = "derabot_wifi";
 static constexpr const char* NS_TRIG = "derabot_trig";
+static constexpr const char* NS_PWR  = "derabot_pwr";
 
 bool NvsStorage::begin() { return true; }
 
@@ -60,7 +61,22 @@ bool NvsStorage::loadThreshold(ThresholdConfig& cfg) {
     return true;
 }
 
+bool NvsStorage::saveEco(bool on) {
+    _prefs.begin(NS_PWR, false);
+    _prefs.putBool("eco", on);
+    _prefs.end();
+    return true;
+}
+
+bool NvsStorage::loadEco(bool& on) {
+    _prefs.begin(NS_PWR, true);
+    on = _prefs.getBool("eco", false);  // default OFF on fresh flash
+    _prefs.end();
+    return true;
+}
+
 void NvsStorage::clear() {
     _prefs.begin(NS_WIFI, false); _prefs.clear(); _prefs.end();
     _prefs.begin(NS_TRIG, false); _prefs.clear(); _prefs.end();
+    _prefs.begin(NS_PWR,  false); _prefs.clear(); _prefs.end();
 }

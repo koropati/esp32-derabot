@@ -25,6 +25,13 @@ static const Note STOCK_TUNE[] = {
 };
 static const int STOCK_TUNE_LEN = sizeof(STOCK_TUNE) / sizeof(STOCK_TUNE[0]);
 
+// Power-on: short rising blip G5->C6. Replaces the long Nokia jingle at boot —
+// quick and light on memory; the full melody is reserved for the alarm.
+static const Note BOOT[] = {
+    {784,90},{1047,150},
+};
+static const int BOOT_LEN = sizeof(BOOT) / sizeof(BOOT[0]);
+
 
 BuzzerUseCase::BuzzerUseCase(IBuzzer* buzzer, IStorage* storage)
     : _buzzer(buzzer), _storage(storage) {}
@@ -109,12 +116,12 @@ void BuzzerUseCase::click() {
 }
 
 void BuzzerUseCase::playStartup() {
-    // Power-on: the iconic Nokia Tune (Gran Vals), played once. Boot only — no
-    // loop/tick() running yet, so play it blocking. (Skip the trailing rest.)
-    for (int i = 0; i < NOKIA_LEN - 1; i++) {   // -1: drop the trailing loop rest
-        const Note& n = NOKIA[i];
+    // Power-on: a short two-note rising blip, played once. Boot only — no
+    // loop/tick() running yet, so play it blocking.
+    for (int i = 0; i < BOOT_LEN; i++) {
+        const Note& n = BOOT[i];
         if (n.freq == 0) _buzzer->off();
-        else             _buzzer->on(n.freq, 110);
+        else             _buzzer->on(n.freq, 90);
         delay(n.ms);
     }
     _buzzer->off();

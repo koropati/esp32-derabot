@@ -286,41 +286,69 @@ Untuk ESP32-C3 Super Mini dengan USB native, Windows mungkin perlu driver tambah
 pip install platformio
 ```
 
-### 4. Edit `platformio.ini` untuk Windows
+### 4. Buat File Kredensial `config_secrets.h`
 
-Ganti port `/dev/ttyACM0` dengan port COM yang ditemukan:
+> **Wajib.** File `src/config/config_secrets.h` berisi kredensial MQTT dan
+> **git-ignored**, jadi TIDAK ikut ter-clone dari repo / komputer lain.
+> Tanpa file ini, build akan gagal dengan error:
+> `fatal error: config_secrets.h: No such file or directory`.
 
-```ini
-[env:esp32-c3-devkitm-1]
-platform = espressif32
-board = esp32-c3-devkitm-1
-framework = arduino
-upload_port = COM3       ; <-- ganti sesuai Device Manager
-monitor_port = COM3      ; <-- sama dengan upload_port
-monitor_speed = 115200
+Salin template lalu isi nilai asli Anda:
+
+```powershell
+# Dari folder project:
+Copy-Item src\config\config_secrets.example.h src\config\config_secrets.h
+```
+
+Edit `src\config\config_secrets.h`:
+
+```cpp
+namespace Secrets {
+namespace Mqtt {
+    constexpr const char* HOST   = "xxxx.s1.eu.hivemq.cloud"; // broker Anda
+    constexpr int         PORT   = 8883;                       // TLS port
+    constexpr const char* USER   = "your-username";
+    constexpr const char* PASS   = "your-password";
+    constexpr const char* CLIENT = "esp32-derabot";            // harus unik per device
+}
+}
 ```
 
 ### 5. Build dan Upload
 
-Buka Command Prompt atau PowerShell di folder project:
+Buka PowerShell di folder project. **Cara yang direkomendasikan** adalah
+meng-override port lewat command line — tanpa mengubah `platformio.ini`,
+sehingga setting Linux (`/dev/ttyACM0`) tetap utuh:
 
 ```powershell
 # Masuk ke folder project
 cd C:\path\ke\project
 
-# Build + Upload:
-pio run --target upload
+# Build + Upload ke COM10 (ganti sesuai Device Manager):
+pio run --target upload --upload-port COM10
 
 # Jika error "pio not found":
-python -m platformio run --target upload
+python -m platformio run --target upload --upload-port COM10
 ```
+
+**Alternatif** — set port permanen di `platformio.ini` (akan menimpa setting
+Linux, jadi pakai ini hanya kalau komputer ini khusus Windows):
+
+```ini
+upload_port = COM10       ; <-- ganti sesuai Device Manager
+monitor_port = COM10      ; <-- sama dengan upload_port
+```
+
+> **Catatan:** Saat pertama kali build, PlatformIO otomatis mengunduh
+> toolchain RISC-V dan semua library (BME280, SSD1306, PubSubClient, dll).
+> Proses ini butuh koneksi internet dan bisa memakan beberapa menit.
 
 ### 6. Monitor Serial (opsional)
 
 ```powershell
-pio device monitor
+pio device monitor --port COM10 --baud 115200
 # atau:
-python -m platformio device monitor --baud 115200 --port COM3
+python -m platformio device monitor --port COM10 --baud 115200
 ```
 
 ### Menggunakan VS Code + PlatformIO Extension (rekomendasi)

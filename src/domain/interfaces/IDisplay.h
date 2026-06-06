@@ -13,4 +13,8 @@ public:
     virtual void drawBitmap(int x, int y, const uint8_t* bmp, int w, int h) = 0;
     virtual int  width()  const = 0;
     virtual int  height() const = 0;
+
+    // Power control — default no-ops so non-OLED backends need not implement them.
+    virtual void setOn(bool on) {}   // turn the panel on/off (power save)
+    virtual void dim(bool dim)  {}   // reduce panel brightness/contrast
 };

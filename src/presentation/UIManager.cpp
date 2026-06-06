@@ -1,18 +1,21 @@
 #include "UIManager.h"
 
 UIManager::UIManager(IDisplay* display, SensorUseCase* sensor,
-                     WifiUseCase* wifi, BuzzerUseCase* buzzer, StockUseCase* stock)
+                     WifiUseCase* wifi, BuzzerUseCase* buzzer, StockUseCase* stock,
+                     PowerUseCase* power, Gy271Compass* compass)
     : _display(display)
     , _sensor(sensor)
     , _wifi(wifi)
     , _buzzer(buzzer)
     , _stock(stock)
-    , _mainScreen(sensor, wifi, buzzer)
+    , _power(power)
+    , _mainScreen(sensor, wifi, buzzer, power)
     , _wifiScanScreen(wifi)
     , _wifiPortalScreen(wifi, buzzer)
     , _sensorScreen(sensor)
-    , _settingsScreen(buzzer)
+    , _settingsScreen(buzzer, power)
     , _stockScreen(stock, wifi, buzzer)
+    , _compassScreen(compass)
 {}
 
 UIManager::~UIManager() {
@@ -31,12 +34,26 @@ void UIManager::begin() {
 void UIManager::pollButtons() {
     if (_buzzer) _buzzer->tick();  // stop click sound when 20ms timer expires
 
+    // Power-save: an active alarm keeps the screen awake; otherwise the eco
+    // inactivity timers may dim/blank the panel.
+    if (_power) _power->tick(_buzzer && _buzzer->isTriggered());
+
     // Per-loop background work for the active screen (e.g. the WiFi web portal).
     if (IScreen* scr = currentScreen()) scr->tick();
 
     bool acted = false;
     ButtonEvent evt;
     while ((evt = _input.poll()) != ButtonEvent::None) {
+        // If the panel is asleep (eco), the first press only wakes it — swallow
+        // the rest of this batch so a "wake" tap doesn't also trigger an action.
+        if (_power && !_power->screenOn()) {
+            _power->wake();
+            _input.resetAll();
+            acted = true;
+            break;
+        }
+        if (_power) _power->wake();  // any press counts as activity
+
         // Non-blocking click feedback — starts tone, tick() stops it later
         if (_buzzer && !_buzzer->isTriggered())
             _buzzer->click();
@@ -55,6 +72,7 @@ void UIManager::pollButtons() {
 
 // Call on 100ms timer — does I2C display transfer only
 void UIManager::render() {
+    if (_power && !_power->screenOn()) return;  // panel off in eco — skip I2C flush
     IScreen* scr = currentScreen();
     if (scr) scr->update(*_display);
 }
@@ -74,6 +92,7 @@ void UIManager::_handleNavigation() {
                 case MainScreen::NavTo::WifiScan:   transitionTo(AppScreen::WifiScan);   break;
                 case MainScreen::NavTo::WifiPortal: transitionTo(AppScreen::WifiPortal); break;
                 case MainScreen::NavTo::Sensor:     transitionTo(AppScreen::Sensor);     break;
+                case MainScreen::NavTo::Compass:    transitionTo(AppScreen::Compass);    break;
                 case MainScreen::NavTo::Stock:      transitionTo(AppScreen::Stock);      break;
                 case MainScreen::NavTo::Settings:   transitionTo(AppScreen::Settings);   break;
                 default: break;
@@ -138,6 +157,7 @@ IScreen* UIManager::currentScreen() {
         case AppScreen::WifiPassword: return _wifiPassScreen;
         case AppScreen::WifiPortal:   return &_wifiPortalScreen;
         case AppScreen::Sensor:       return &_sensorScreen;
+        case AppScreen::Compass:      return &_compassScreen;
         case AppScreen::Stock:        return &_stockScreen;
         case AppScreen::Settings:     return &_settingsScreen;
     }

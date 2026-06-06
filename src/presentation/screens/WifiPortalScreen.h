@@ -18,12 +18,12 @@ public:
     bool isDone() const override { return _done; }
 
 private:
-    enum class St { Serving, Connecting, Success };
+    enum class St { Starting, Serving, Connecting, Success };
 
     WifiUseCase*   _wifi;
     BuzzerUseCase* _buzzer;
     WifiPortal     _portal;
-    St     _state     = St::Serving;
+    St     _state     = St::Starting;
     bool   _done      = false;
     bool   _attempted = false;   // connect already tried for current submission
     bool   _failed    = false;   // last connect attempt failed

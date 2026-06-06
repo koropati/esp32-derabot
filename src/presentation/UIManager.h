@@ -7,13 +7,15 @@
 #include "screens/SensorScreen.h"
 #include "screens/SettingsScreen.h"
 #include "screens/StockScreen.h"
+#include "screens/CompassScreen.h"
 #include "../domain/interfaces/IDisplay.h"
 #include "../application/SensorUseCase.h"
 #include "../application/WifiUseCase.h"
 #include "../application/BuzzerUseCase.h"
 #include "../application/StockUseCase.h"
+#include "../application/PowerUseCase.h"
 
-enum class AppScreen { Main, WifiScan, WifiPassword, WifiPortal, Sensor, Stock, Settings };
+enum class AppScreen { Main, WifiScan, WifiPassword, WifiPortal, Sensor, Compass, Stock, Settings };
 
 class UIManager {
 public:
@@ -21,7 +23,9 @@ public:
               SensorUseCase* sensor,
               WifiUseCase*   wifi,
               BuzzerUseCase* buzzer,
-              StockUseCase*  stock);
+              StockUseCase*  stock,
+              PowerUseCase*  power,
+              Gy271Compass*  compass);
     ~UIManager();
     void begin();
     void pollButtons();  // call every loop iteration — fast, no I2C
@@ -39,6 +43,7 @@ private:
     WifiUseCase*    _wifi;
     BuzzerUseCase*  _buzzer;
     StockUseCase*   _stock;
+    PowerUseCase*   _power;
 
     InputHandler        _input;
     AppScreen           _current = AppScreen::Main;
@@ -50,4 +55,5 @@ private:
     SensorScreen        _sensorScreen;
     SettingsScreen      _settingsScreen;
     StockScreen         _stockScreen;
+    CompassScreen       _compassScreen;
 };
