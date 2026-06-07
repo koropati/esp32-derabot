@@ -1,8 +1,9 @@
 #include "NvsStorage.h"
 
-static constexpr const char* NS_WIFI = "derabot_wifi";
-static constexpr const char* NS_TRIG = "derabot_trig";
-static constexpr const char* NS_PWR  = "derabot_pwr";
+static constexpr const char* NS_WIFI  = "derabot_wifi";
+static constexpr const char* NS_TRIG  = "derabot_trig";
+static constexpr const char* NS_PWR   = "derabot_pwr";
+static constexpr const char* NS_STOCK = "derabot_stk";
 
 bool NvsStorage::begin() { return true; }
 
@@ -79,8 +80,37 @@ bool NvsStorage::loadEco(bool& on) {
     return true;
 }
 
+bool NvsStorage::saveMotionWake(bool on) {
+    _prefs.begin(NS_PWR, false);
+    _prefs.putBool("mwake", on);
+    _prefs.end();
+    return true;
+}
+
+bool NvsStorage::loadMotionWake(bool& on) {
+    _prefs.begin(NS_PWR, true);
+    on = _prefs.getBool("mwake", true);  // default ON
+    _prefs.end();
+    return true;
+}
+
+bool NvsStorage::saveStock(const String& symbol) {
+    _prefs.begin(NS_STOCK, false);
+    _prefs.putString("sym", symbol);
+    _prefs.end();
+    return true;
+}
+
+bool NvsStorage::loadStock(String& symbol) {
+    _prefs.begin(NS_STOCK, true);
+    symbol = _prefs.getString("sym", "");
+    _prefs.end();
+    return !symbol.isEmpty();
+}
+
 void NvsStorage::clear() {
-    _prefs.begin(NS_WIFI, false); _prefs.clear(); _prefs.end();
-    _prefs.begin(NS_TRIG, false); _prefs.clear(); _prefs.end();
-    _prefs.begin(NS_PWR,  false); _prefs.clear(); _prefs.end();
+    _prefs.begin(NS_WIFI,  false); _prefs.clear(); _prefs.end();
+    _prefs.begin(NS_TRIG,  false); _prefs.clear(); _prefs.end();
+    _prefs.begin(NS_PWR,   false); _prefs.clear(); _prefs.end();
+    _prefs.begin(NS_STOCK, false); _prefs.clear(); _prefs.end();
 }

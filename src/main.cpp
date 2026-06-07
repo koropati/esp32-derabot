@@ -64,6 +64,11 @@ static uint32_t nextMqttConnMs = 0;
 static uint32_t mqttBackoffMs  = Config::Timing::MQTT_RETRY_MIN_MS;
 static uint32_t lastDisplayMs  = 0;
 
+// Motion-wake state: last magnetometer sample taken while the panel was dark.
+static uint32_t lastMotionMs = 0;
+static int16_t  mwX = 0, mwY = 0, mwZ = 0;
+static bool     mwHave = false;
+
 // ---------------------------------------------------------------------------
 
 // Branded boot screen: framed title, subtitle, a status line and a progress bar
@@ -152,8 +157,9 @@ void setup() {
     buzzerUC->begin();
     buzzerUC->playStartup();  // short power-on blip
 
-    // Stock (IHSG via Yahoo Finance)
-    stockUC = new StockUseCase(&stockClient);
+    // Stock (market code selectable in Settings, fetched via Yahoo Finance)
+    stockUC = new StockUseCase(&stockClient, &storage);
+    stockUC->begin();
 
     // Power-save manager (loads eco preference, applies CPU/WiFi state)
     powerUC = new PowerUseCase(&display, wifiUC, &storage);
@@ -180,6 +186,28 @@ void loop() {
     ui->pollButtons();
 
     uint32_t now = millis();
+
+    // Motion wake — only while the panel is dark (eco screen-off) and enabled.
+    // A large change in the magnetometer vector means the device was moved/rotated,
+    // so wake the screen without needing a button press.
+    if (powerUC && powerUC->motionWake() && !powerUC->screenOn()) {
+        if (now - lastMotionMs >= Config::Power::MOTION_POLL_MS) {
+            lastMotionMs = now;
+            int16_t x, y, z;
+            if (compass.readVector(x, y, z)) {
+                if (mwHave) {
+                    long d = labs(x - mwX) + labs(y - mwY) + labs(z - mwZ);
+                    if (d >= Config::Power::MOTION_THRESHOLD) {
+                        powerUC->wake();
+                        ui->render();   // light up immediately
+                    }
+                }
+                mwX = x; mwY = y; mwZ = z; mwHave = true;
+            }
+        }
+    } else {
+        mwHave = false;  // panel on (or disabled): re-baseline next time it sleeps
+    }
 
     // Read all sensors on schedule
     if (now - lastSensorMs >= Config::Timing::SENSOR_MS) {

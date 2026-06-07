@@ -46,6 +46,10 @@ bool EspWifiManager::startAP(const String& ssid, const String& pass) {
     // AP_STA keeps the station side alive so we can still scan and connect to
     // the network the user picks while the config hotspot is up.
     WiFi.mode(WIFI_AP_STA);
+    // Force the radio fully awake: under modem-sleep the AP misses beacons and
+    // the phone keeps dropping the hotspot. Remember the prior mode to restore.
+    _savedPs = WiFi.getSleep();
+    WiFi.setSleep(WIFI_PS_NONE);
     bool ok = pass.isEmpty()
         ? WiFi.softAP(ssid.c_str())
         : WiFi.softAP(ssid.c_str(), pass.c_str());
@@ -57,6 +61,7 @@ bool EspWifiManager::startAP(const String& ssid, const String& pass) {
 void EspWifiManager::stopAP() {
     WiFi.softAPdisconnect(true);
     WiFi.mode(WIFI_STA);
+    WiFi.setSleep(_savedPs);   // restore the eco power-save state from before
 }
 
 String EspWifiManager::getApIp()   const { return WiFi.softAPIP().toString(); }

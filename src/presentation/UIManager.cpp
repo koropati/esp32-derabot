@@ -10,9 +10,9 @@ UIManager::UIManager(IDisplay* display, SensorUseCase* sensor,
     , _stock(stock)
     , _power(power)
     , _mainScreen(sensor, wifi, buzzer, power)
-    , _wifiPortalScreen(wifi, buzzer)
+    , _wifiPortalScreen(wifi, buzzer, power)
     , _sensorScreen(sensor)
-    , _settingsScreen(buzzer, power)
+    , _settingsScreen(buzzer, power, stock)
     , _stockScreen(stock, wifi, buzzer)
     , _compassScreen(compass)
 {}

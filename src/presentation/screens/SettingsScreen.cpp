@@ -1,25 +1,30 @@
 #include "SettingsScreen.h"
+#include "../../config/config.h"
 
-SettingsScreen::SettingsScreen(BuzzerUseCase* buzzer, PowerUseCase* power)
-    : _buzzer(buzzer), _power(power) {}
+SettingsScreen::SettingsScreen(BuzzerUseCase* buzzer, PowerUseCase* power, StockUseCase* stock)
+    : _buzzer(buzzer), _power(power), _stock(stock) {}
 
 void SettingsScreen::enter() {
-    _cfg   = _buzzer->getThreshold();
-    _eco   = _power->eco();
-    _field = 0;
-    _done  = false;
-    // Two toggles first, then the value fields, then the action rows.
-    _fields[0] = { "Alarm",   nullptr,        0,      0,       1    };
-    _fields[1] = { "Hemat",   nullptr,        0,      0,       1    };
-    _fields[2] = { "TempMax", &_cfg.tempMax,  1.0f,  -20.0f, 100.0f };
-    _fields[3] = { "TempMin", &_cfg.tempMin,  1.0f,  -40.0f,  60.0f };
-    _fields[4] = { "HumMaks", &_cfg.humidMax, 5.0f,   30.0f, 100.0f };
-    _fields[5] = { "dBMaks",  &_cfg.soundMax, 5.0f,   30.0f, 130.0f };
-    _fields[6] = { "VoltMin", &_cfg.voltMin,  0.1f,    0.0f,   4.2f };  // 0.0 = nonaktif
-    _fields[7] = { "BatMin",  &_cfg.battMin,  0.1f,    2.5f,   4.0f };
-    _fields[8] = { "BatMax",  &_cfg.battMax,  0.1f,    3.0f,   4.3f };
-    _fields[9]  = { "Simpan", nullptr,        0,      0,       0    };
-    _fields[10] = { "Batal",  nullptr,        0,      0,       0    };
+    _cfg        = _buzzer->getThreshold();
+    _eco        = _power->eco();
+    _motionWake = _power->motionWake();
+    _stockIdx   = _stock->symbolIndex();
+    _field      = 0;
+    _done       = false;
+    // Toggles + market selector first, then the value fields, then action rows.
+    _fields[0]  = { "Alarm",     nullptr,        0,      0,       1    };
+    _fields[1]  = { "Hemat",     nullptr,        0,      0,       1    };
+    _fields[2]  = { "WakeGerak", nullptr,        0,      0,       1    };
+    _fields[3]  = { "Saham",     nullptr,        0,      0,       0    };
+    _fields[4]  = { "TempMax",   &_cfg.tempMax,  1.0f,  -20.0f, 100.0f };
+    _fields[5]  = { "TempMin",   &_cfg.tempMin,  1.0f,  -40.0f,  60.0f };
+    _fields[6]  = { "HumMaks",   &_cfg.humidMax, 5.0f,   30.0f, 100.0f };
+    _fields[7]  = { "dBMaks",    &_cfg.soundMax, 5.0f,   30.0f, 130.0f };
+    _fields[8]  = { "VoltMin",   &_cfg.voltMin,  0.1f,    0.0f,   4.2f };  // 0.0 = nonaktif
+    _fields[9]  = { "BatMin",    &_cfg.battMin,  0.1f,    2.5f,   4.0f };
+    _fields[10] = { "BatMax",    &_cfg.battMax,  0.1f,    3.0f,   4.3f };
+    _fields[11] = { "Simpan",    nullptr,        0,      0,       0    };
+    _fields[12] = { "Batal",     nullptr,        0,      0,       0    };
 }
 
 void SettingsScreen::update(IDisplay& d) {
@@ -44,6 +49,16 @@ void SettingsScreen::update(IDisplay& d) {
                 (idx == _field) ? ">" : " ",
                 _fields[idx].label,
                 _eco ? "AKTIF" : "NONAKTIF");
+        } else if (idx == WAKE_FIELD) {
+            snprintf(buf, sizeof(buf), "%s%s:%s",
+                (idx == _field) ? ">" : " ",
+                _fields[idx].label,
+                _motionWake ? "AKTIF" : "NONAKT");
+        } else if (idx == SAHAM_FIELD) {
+            snprintf(buf, sizeof(buf), "%s%s: %s",
+                (idx == _field) ? ">" : " ",
+                _fields[idx].label,
+                Config::Stock::LIST[_stockIdx].label);
         } else if (idx == SAVE_FIELD || idx == CANCEL_FIELD) {  // action rows
             snprintf(buf, sizeof(buf), "%s[ %s ]",
                 (idx == _field) ? ">" : " ",
@@ -71,6 +86,9 @@ void SettingsScreen::onButton(ButtonEvent evt) {
         case ButtonEvent::Left:
             if (_field == ALARM_FIELD)      _cfg.enabled = false;
             else if (_field == ECO_FIELD)   _eco = false;
+            else if (_field == WAKE_FIELD)  _motionWake = false;
+            else if (_field == SAHAM_FIELD)       // selector: previous code (wraps)
+                _stockIdx = (_stockIdx - 1 + Config::Stock::LIST_COUNT) % Config::Stock::LIST_COUNT;
             else if (f.val)                       // value field: decrease
                 *f.val = max(f.min, *f.val - f.step);
             else                                  // action row: step back a field
@@ -79,6 +97,9 @@ void SettingsScreen::onButton(ButtonEvent evt) {
         case ButtonEvent::Right:
             if (_field == ALARM_FIELD)      _cfg.enabled = true;
             else if (_field == ECO_FIELD)   _eco = true;
+            else if (_field == WAKE_FIELD)  _motionWake = true;
+            else if (_field == SAHAM_FIELD)       // selector: next code (wraps)
+                _stockIdx = (_stockIdx + 1) % Config::Stock::LIST_COUNT;
             else if (f.val)                       // value field: increase
                 *f.val = min(f.max, *f.val + f.step);
             else                                  // action row: step forward a field
@@ -86,8 +107,10 @@ void SettingsScreen::onButton(ButtonEvent evt) {
             break;
         case ButtonEvent::Center:
             if (_field == SAVE_FIELD) {
-                _buzzer->updateThreshold(_cfg);   // save alarm thresholds
-                _power->setEco(_eco);             // save power-save preference
+                _buzzer->updateThreshold(_cfg);       // save alarm thresholds
+                _power->setEco(_eco);                 // save power-save preference
+                _power->setMotionWake(_motionWake);   // save motion-wake preference
+                _stock->setSymbolIndex(_stockIdx);    // save market code selection
                 _done = true;
             } else if (_field == CANCEL_FIELD) {
                 _done = true;                     // cancel without saving

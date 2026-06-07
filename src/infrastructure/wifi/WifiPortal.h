@@ -16,7 +16,10 @@ class WifiPortal {
 public:
     using ScanFn = std::function<std::vector<WifiNetwork>()>;
 
-    void   begin(ScanFn scan);   // assumes the soft-AP is already up
+    // `nets` is the network list scanned *before* the soft-AP came up (scanning
+    // is far more reliable in pure STA mode). `rescan` is invoked only when the
+    // user taps "scan ulang" and runs while AP_STA is active.
+    void   begin(std::vector<WifiNetwork> nets, ScanFn rescan);  // soft-AP already up
     void   loop();               // service DNS + HTTP — call every iteration
     void   stop();
 
@@ -30,6 +33,8 @@ private:
     void   _handleSave();
     void   _handleNotFound();
     String _pageHtml() const;
+    static std::vector<WifiNetwork> _sanitize(std::vector<WifiNetwork> nets);
+    static String _bars(int rssi);
 
     WebServer     _server{80};
     DNSServer     _dns;

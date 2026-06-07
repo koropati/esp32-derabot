@@ -2,6 +2,7 @@
 #include "../IScreen.h"
 #include "../../application/WifiUseCase.h"
 #include "../../application/BuzzerUseCase.h"
+#include "../../application/PowerUseCase.h"
 #include "../../infrastructure/wifi/WifiPortal.h"
 
 // Brings up the soft-AP config portal and shows join instructions on the OLED.
@@ -9,7 +10,7 @@
 // reports the result. Back (Left) tears the portal down and returns to the menu.
 class WifiPortalScreen : public IScreen {
 public:
-    WifiPortalScreen(WifiUseCase* wifi, BuzzerUseCase* buzzer);
+    WifiPortalScreen(WifiUseCase* wifi, BuzzerUseCase* buzzer, PowerUseCase* power);
     void enter() override;
     void exit()  override;
     void tick()  override;                 // service the web server every loop
@@ -22,6 +23,7 @@ private:
 
     WifiUseCase*   _wifi;
     BuzzerUseCase* _buzzer;
+    PowerUseCase*  _power;
     WifiPortal     _portal;
     St     _state     = St::Starting;
     bool   _done      = false;

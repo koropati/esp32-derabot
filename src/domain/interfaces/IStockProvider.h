@@ -5,5 +5,7 @@
 class IStockProvider {
 public:
     virtual ~IStockProvider() = default;
-    virtual bool fetch(StockData& out) = 0;  // blocking; fills out, returns success
+    // `symbol` is the provider-specific ticker (e.g. "^JKSE", "BBCA.JK").
+    // Blocking; fills out, returns success.
+    virtual bool fetch(const String& symbol, StockData& out) = 0;
 };

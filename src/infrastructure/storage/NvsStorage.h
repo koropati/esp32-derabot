@@ -11,6 +11,10 @@ public:
     bool loadThreshold(ThresholdConfig& cfg) override;
     bool saveEco(bool on) override;
     bool loadEco(bool& on) override;
+    bool saveMotionWake(bool on) override;
+    bool loadMotionWake(bool& on) override;
+    bool saveStock(const String& symbol) override;
+    bool loadStock(String& symbol) override;
     void clear() override;
 
 private:

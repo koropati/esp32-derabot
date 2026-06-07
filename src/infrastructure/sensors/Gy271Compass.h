@@ -16,6 +16,10 @@ public:
     // degrees, or a negative value if no reading is available).
     float readHeading();
 
+    // Raw magnetometer vector (LSB). Used for motion-wake: a large change between
+    // samples means the device was moved/rotated. Returns false if unavailable.
+    bool readVector(int16_t& x, int16_t& y, int16_t& z) { return _readRaw(x, y, z); }
+
 private:
     enum class Chip { None, QMC5883L, HMC5883L };
 

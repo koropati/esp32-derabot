@@ -21,9 +21,17 @@ public:
     bool eco()    const { return _eco; }   // manual flag (Settings display)
     bool active() const { return _eco; }   // effective eco state (ECO badge)
 
+    void setMotionWake(bool on);  // toggle from Settings (persists)
+    bool motionWake() const { return _motionWake; }
+
     void wake();                  // user/alarm activity: screen on + bright, reset idle
     void tick(bool keepAwake);    // call every loop: handle dim/off timers
     bool screenOn() const { return _screenOn; }
+
+    // Temporarily override eco while a screen needs full performance + a lit panel
+    // (e.g. the WiFi config portal: modem-sleep/low-CPU/screen-off all make the
+    // soft-AP drop the phone). Restores the eco CPU clock when released.
+    void holdAwake(bool on);
 
 private:
     void _apply(bool on);         // apply CPU/WiFi for an eco state change
@@ -32,7 +40,9 @@ private:
     WifiUseCase* _wifi;
     IStorage*    _storage;
 
-    bool _eco = false;            // persisted manual preference == effective state
+    bool _eco        = false;     // persisted manual preference == effective state
+    bool _hold       = false;     // transient full-performance override
+    bool _motionWake = true;      // wake the panel when the device is moved
 
     bool     _screenOn      = true;
     bool     _dimmed        = false;

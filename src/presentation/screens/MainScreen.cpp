@@ -2,7 +2,7 @@
 #include <Arduino.h>
 
 static const char* MENU_ITEMS[] = {
-    "WiFi via HP", "Sensor Detail", "Compass", "Bursa IHSG", "Settings"
+    "WiFi via HP", "Sensor Detail", "Compass", "Bursa Saham", "Settings"
 };
 static constexpr int MENU_COUNT = 5;
 

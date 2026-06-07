@@ -20,7 +20,7 @@ void StockScreen::tick() {
 void StockScreen::update(IDisplay& d) {
     if (!_wifi->isConnected()) {
         d.clear();
-        d.drawText(0, 0, "Bursa IHSG");
+        d.drawText(0, 0, (String("Bursa ") + _stock->label()).c_str());
         d.drawLine(0, 11, d.width() - 1, 11);
         d.drawText(0, 24, "Tidak ada internet.");
         d.drawText(0, 36, "Hubungkan WiFi dulu.");
@@ -37,7 +37,7 @@ void StockScreen::update(IDisplay& d) {
         // refresh) or when there is no data yet. The silent 60s auto-refresh keeps
         // the current value/graph on screen and refreshes in place — seamless.
         if (_announce || !_stock->data().valid) {
-            drawLoadingWindow(d, "Bursa IHSG", "Memuat data...");
+            drawLoadingWindow(d, (String("Bursa ") + _stock->label()).c_str(), "Memuat data...");
             d.flush();
         }
 
@@ -52,7 +52,7 @@ void StockScreen::update(IDisplay& d) {
     const StockData& s = _stock->data();
     if (!s.valid) {
         d.clear();
-        d.drawText(0, 0, "Bursa IHSG");
+        d.drawText(0, 0, (String("Bursa ") + _stock->label()).c_str());
         d.drawLine(0, 11, d.width() - 1, 11);
         d.drawText(0, 24, "Gagal memuat data:");
         d.drawText(0, 36, s.error.substring(0, 21));
@@ -69,8 +69,8 @@ void StockScreen::_drawData(IDisplay& d, const StockData& s) {
     char buf[26];
     d.clear();
 
-    // Header: index value
-    snprintf(buf, sizeof(buf), "IHSG %.2f", s.price);
+    // Header: code + latest value
+    snprintf(buf, sizeof(buf), "%s %.2f", _stock->label(), s.price);
     d.drawText(0, 0, buf);
 
     // Change line with up/down sign

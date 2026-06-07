@@ -5,7 +5,25 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-bool YahooStockClient::fetch(StockData& out) {
+// Percent-encode the few characters a ticker can contain that aren't URL-safe
+// (notably '^' in index symbols like ^JKSE -> %5E). Letters, digits, '.' and
+// '-' pass through untouched.
+static String urlEncodeSymbol(const String& s) {
+    String out;
+    for (size_t i = 0; i < s.length(); i++) {
+        char c = s[i];
+        if (isalnum((unsigned char)c) || c == '.' || c == '-') {
+            out += c;
+        } else {
+            char buf[4];
+            snprintf(buf, sizeof(buf), "%%%02X", (unsigned char)c);
+            out += buf;
+        }
+    }
+    return out;
+}
+
+bool YahooStockClient::fetch(const String& symbol, StockData& out) {
     out.valid = false;
     out.error = "";
 
@@ -19,7 +37,9 @@ bool YahooStockClient::fetch(StockData& out) {
     client.setTimeout(8000);
 
     HTTPClient https;
-    String url = String("https://") + Config::Stock::HOST + Config::Stock::PATH;
+    String url = String("https://") + Config::Stock::HOST +
+                 "/v8/finance/chart/" + urlEncodeSymbol(symbol) +
+                 "?range=1d&interval=5m";
     if (!https.begin(client, url)) {
         out.error = "begin fail";
         return false;
