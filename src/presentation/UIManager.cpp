@@ -2,18 +2,20 @@
 
 UIManager::UIManager(IDisplay* display, SensorUseCase* sensor,
                      WifiUseCase* wifi, BuzzerUseCase* buzzer, StockUseCase* stock,
-                     PowerUseCase* power, Gy271Compass* compass)
+                     ForexUseCase* forex, PowerUseCase* power, Gy271Compass* compass)
     : _display(display)
     , _sensor(sensor)
     , _wifi(wifi)
     , _buzzer(buzzer)
     , _stock(stock)
+    , _forex(forex)
     , _power(power)
     , _mainScreen(sensor, wifi, buzzer, power)
     , _wifiPortalScreen(wifi, buzzer, power)
     , _sensorScreen(sensor)
     , _settingsScreen(buzzer, power, stock)
     , _stockScreen(stock, wifi, buzzer)
+    , _forexScreen(forex, wifi, buzzer)
     , _compassScreen(compass)
 {}
 
@@ -90,6 +92,7 @@ void UIManager::_handleNavigation() {
                 case MainScreen::NavTo::Sensor:     transitionTo(AppScreen::Sensor);     break;
                 case MainScreen::NavTo::Compass:    transitionTo(AppScreen::Compass);    break;
                 case MainScreen::NavTo::Stock:      transitionTo(AppScreen::Stock);      break;
+                case MainScreen::NavTo::Forex:      transitionTo(AppScreen::Forex);      break;
                 case MainScreen::NavTo::Settings:   transitionTo(AppScreen::Settings);   break;
                 default: break;
             }
@@ -124,6 +127,7 @@ IScreen* UIManager::currentScreen() {
         case AppScreen::Sensor:       return &_sensorScreen;
         case AppScreen::Compass:      return &_compassScreen;
         case AppScreen::Stock:        return &_stockScreen;
+        case AppScreen::Forex:        return &_forexScreen;
         case AppScreen::Settings:     return &_settingsScreen;
     }
     return nullptr;

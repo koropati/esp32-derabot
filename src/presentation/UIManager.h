@@ -5,15 +5,17 @@
 #include "screens/SensorScreen.h"
 #include "screens/SettingsScreen.h"
 #include "screens/StockScreen.h"
+#include "screens/ForexScreen.h"
 #include "screens/CompassScreen.h"
 #include "../domain/interfaces/IDisplay.h"
 #include "../application/SensorUseCase.h"
 #include "../application/WifiUseCase.h"
 #include "../application/BuzzerUseCase.h"
 #include "../application/StockUseCase.h"
+#include "../application/ForexUseCase.h"
 #include "../application/PowerUseCase.h"
 
-enum class AppScreen { Main, WifiPortal, Sensor, Compass, Stock, Settings };
+enum class AppScreen { Main, WifiPortal, Sensor, Compass, Stock, Forex, Settings };
 
 class UIManager {
 public:
@@ -22,6 +24,7 @@ public:
               WifiUseCase*   wifi,
               BuzzerUseCase* buzzer,
               StockUseCase*  stock,
+              ForexUseCase*  forex,
               PowerUseCase*  power,
               Gy271Compass*  compass);
     ~UIManager();
@@ -41,6 +44,7 @@ private:
     WifiUseCase*    _wifi;
     BuzzerUseCase*  _buzzer;
     StockUseCase*   _stock;
+    ForexUseCase*   _forex;
     PowerUseCase*   _power;
 
     InputHandler        _input;
@@ -51,5 +55,6 @@ private:
     SensorScreen        _sensorScreen;
     SettingsScreen      _settingsScreen;
     StockScreen         _stockScreen;
+    ForexScreen         _forexScreen;
     CompassScreen       _compassScreen;
 };

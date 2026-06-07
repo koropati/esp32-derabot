@@ -14,6 +14,7 @@
 #include "infrastructure/storage/NvsStorage.h"
 #include "infrastructure/buzzer/EspBuzzer.h"
 #include "infrastructure/stock/YahooStockClient.h"
+#include "infrastructure/forex/ErApiClient.h"
 
 // Application
 #include "application/SensorUseCase.h"
@@ -21,6 +22,7 @@
 #include "application/MqttUseCase.h"
 #include "application/BuzzerUseCase.h"
 #include "application/StockUseCase.h"
+#include "application/ForexUseCase.h"
 #include "application/PowerUseCase.h"
 
 // Presentation
@@ -39,6 +41,7 @@ static NvsStorage     storage;
 static HiveMqClient     mqttClient;
 static EspBuzzer        buzzer;
 static YahooStockClient stockClient;
+static ErApiClient      forexClient;
 
 // ---------------------------------------------------------------------------
 // Use cases
@@ -48,6 +51,7 @@ static WifiUseCase*   wifiUC   = nullptr;
 static MqttUseCase*   mqttUC   = nullptr;
 static BuzzerUseCase* buzzerUC = nullptr;
 static StockUseCase*  stockUC  = nullptr;
+static ForexUseCase*  forexUC  = nullptr;
 static PowerUseCase*  powerUC  = nullptr;
 
 // ---------------------------------------------------------------------------
@@ -161,13 +165,16 @@ void setup() {
     stockUC = new StockUseCase(&stockClient, &storage);
     stockUC->begin();
 
+    // Forex (rupiah exchange rates via exchangerate-api free endpoint)
+    forexUC = new ForexUseCase(&forexClient);
+
     // Power-save manager (loads eco preference, applies CPU/WiFi state)
     powerUC = new PowerUseCase(&display, wifiUC, &storage);
     powerUC->begin();
 
     // UI
     bootScreen("Antarmuka...", 85);
-    ui = new UIManager(&display, sensorUC, wifiUC, buzzerUC, stockUC, powerUC, &compass);
+    ui = new UIManager(&display, sensorUC, wifiUC, buzzerUC, stockUC, forexUC, powerUC, &compass);
     ui->begin();
 
     // Try auto-connect to saved WiFi

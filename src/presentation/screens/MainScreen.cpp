@@ -2,9 +2,9 @@
 #include <Arduino.h>
 
 static const char* MENU_ITEMS[] = {
-    "WiFi via HP", "Sensor Detail", "Compass", "Bursa Saham", "Settings"
+    "WiFi via HP", "Sensor Detail", "Compass", "Bursa Saham", "Kurs Rupiah", "Settings"
 };
-static constexpr int MENU_COUNT = 5;
+static constexpr int MENU_COUNT = 6;
 
 MainScreen::MainScreen(SensorUseCase* sensor, WifiUseCase* wifi, BuzzerUseCase* buzzer,
                        PowerUseCase* power)
@@ -99,14 +99,25 @@ void MainScreen::drawSummary(IDisplay& d, const SensorData& data) {
 }
 
 void MainScreen::drawMenu(IDisplay& d) {
-    // 5 items fit between the header divider (y12) and the hint bar (y51);
-    // 7px rows keep the last selection box clear of the bar's divider.
-    for (int i = 0; i < MENU_COUNT; i++) {
-        int y = 14 + i * 7;
-        if (i == _menuIdx)
+    // Roomy rows for legibility: only 4 fit between the header divider (y12) and
+    // the hint bar (y51), so scroll a window to keep the cursor visible. A small
+    // scroll arrow hints there are more items above/below the current page.
+    constexpr int VISIBLE = 4;
+    constexpr int START_Y = 15;
+    constexpr int STEP    = 9;
+    int start = (_menuIdx >= VISIBLE) ? _menuIdx - VISIBLE + 1 : 0;
+    for (int row = 0; row < VISIBLE; row++) {
+        int idx = start + row;
+        if (idx >= MENU_COUNT) break;
+        int y = START_Y + row * STEP;
+        if (idx == _menuIdx)
             d.drawRect(0, y - 1, d.width() - 1, 9, false);  // selection box
-        d.drawText(3, y, MENU_ITEMS[i]);
+        d.drawText(4, y, MENU_ITEMS[idx]);
     }
+    // Scroll arrows on the right edge when the list extends beyond this page.
+    if (start > 0)                 d.drawText(d.width() - 6, START_Y, "^");
+    if (start + VISIBLE < MENU_COUNT)
+        d.drawText(d.width() - 6, START_Y + (VISIBLE - 1) * STEP, "v");
     // Button hints mapped to the three physical buttons below the screen.
     drawButtonBar(d, "Atas", "Pilih", "Bawah");
 }
@@ -156,7 +167,8 @@ void MainScreen::onButton(ButtonEvent evt) {
             if (_menuIdx == 1) _navTo = NavTo::Sensor;
             if (_menuIdx == 2) _navTo = NavTo::Compass;
             if (_menuIdx == 3) _navTo = NavTo::Stock;
-            if (_menuIdx == 4) _navTo = NavTo::Settings;
+            if (_menuIdx == 4) _navTo = NavTo::Forex;
+            if (_menuIdx == 5) _navTo = NavTo::Settings;
             break;
         default:
             break;

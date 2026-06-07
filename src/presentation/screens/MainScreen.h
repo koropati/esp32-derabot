@@ -7,7 +7,7 @@
 
 class MainScreen : public IScreen {
 public:
-    enum class NavTo { None, WifiPortal, Sensor, Compass, Stock, Settings };
+    enum class NavTo { None, WifiPortal, Sensor, Compass, Stock, Forex, Settings };
 
     MainScreen(SensorUseCase* sensor, WifiUseCase* wifi, BuzzerUseCase* buzzer,
                PowerUseCase* power);

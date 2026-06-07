@@ -83,6 +83,19 @@ namespace Stock {
     constexpr int LIST_COUNT = sizeof(LIST) / sizeof(LIST[0]);
 }
 
+namespace Forex {
+    // Rupiah (IDR) exchange rates from exchangerate-api's free open endpoint
+    // (no API key required). Base USD; each listed currency is converted to IDR.
+    constexpr const char* HOST       = "open.er-api.com";
+    constexpr const char* PATH       = "/v6/latest/USD";
+    constexpr uint32_t    REFRESH_MS = 1800000;   // 30 min (source updates ~daily)
+
+    // Currencies shown as "1 <CODE> = ? IDR". Add/remove freely; "USD" must be
+    // present for the conversion math (it's the API base).
+    constexpr const char* CODES[]   = { "USD", "EUR", "SGD", "JPY", "MYR", "SAR" };
+    constexpr int         CODES_COUNT = sizeof(CODES) / sizeof(CODES[0]);
+}
+
 namespace Voltage {
     constexpr float VREF  = 3.3f;
     constexpr float R1    = 100000.0f;  // voltage divider upper resistor (Ohm)
