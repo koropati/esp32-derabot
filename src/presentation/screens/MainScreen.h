@@ -7,7 +7,7 @@
 
 class MainScreen : public IScreen {
 public:
-    enum class NavTo { None, WifiScan, WifiPortal, Sensor, Compass, Stock, Settings };
+    enum class NavTo { None, WifiPortal, Sensor, Compass, Stock, Settings };
 
     MainScreen(SensorUseCase* sensor, WifiUseCase* wifi, BuzzerUseCase* buzzer,
                PowerUseCase* power);
@@ -22,6 +22,10 @@ private:
     void drawHeader(IDisplay& d, const SensorData& data);
     void drawSummary(IDisplay& d, const SensorData& data);
     void drawMenu(IDisplay& d);
+    // Footer bar with one label per physical button (left/center/right),
+    // each aligned over its button so on-screen hints map to the hardware.
+    void drawButtonBar(IDisplay& d, const char* left, const char* center,
+                       const char* right);
 
     SensorUseCase* _sensor;
     WifiUseCase*   _wifi;

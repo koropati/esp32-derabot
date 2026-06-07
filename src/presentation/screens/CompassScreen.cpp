@@ -53,7 +53,8 @@ void CompassScreen::update(IDisplay& d) {
         return;
     }
 
-    const int cx = 31, cy = 33, r = 27;
+    // Ring sits in the upper-left, lifted clear of the footer hint row.
+    const int cx = 31, cy = 29, r = 24;
     drawRing(d, cx, cy, r);
 
     // Cardinal letters just inside the ring.
@@ -80,8 +81,10 @@ void CompassScreen::update(IDisplay& d) {
     d.drawRect(70 + 12 * (int)strlen(buf) + 1, 14, 3, 3, false);  // degree mark
     d.drawText(70, 38, cardinal(_heading), 2);
 
+    // Footer hint aligned to its physical button: only Left acts (back), so the
+    // label sits bottom-left directly above the Left button.
     d.drawLine(0, 55, d.width() - 1, 55);
-    d.drawText(70, 57, "< Kembali");
+    d.drawText(0, 57, "< Kembali");
     d.flush();
 }
 

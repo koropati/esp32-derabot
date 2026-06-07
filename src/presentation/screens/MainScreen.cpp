@@ -2,9 +2,9 @@
 #include <Arduino.h>
 
 static const char* MENU_ITEMS[] = {
-    "WiFi via HP", "WiFi (Tombol)", "Sensor Detail", "Compass", "Bursa IHSG", "Settings"
+    "WiFi via HP", "Sensor Detail", "Compass", "Bursa IHSG", "Settings"
 };
-static constexpr int MENU_COUNT = 6;
+static constexpr int MENU_COUNT = 5;
 
 MainScreen::MainScreen(SensorUseCase* sensor, WifiUseCase* wifi, BuzzerUseCase* buzzer,
                        PowerUseCase* power)
@@ -58,51 +58,74 @@ void MainScreen::drawHeader(IDisplay& d, const SensorData& data) {
 }
 
 void MainScreen::drawSummary(IDisplay& d, const SensorData& data) {
-    char buf[22];
+    char buf[24];
 
     // Hero: temperature in large type with a small degree mark + unit.
     snprintf(buf, sizeof(buf), "%.1f", data.temperature);
-    d.drawText(2, 16, buf, 2);
+    d.drawText(2, 15, buf, 2);
     int tx = 2 + 12 * (int)strlen(buf);     // pixel just past the big number
-    d.drawRect(tx + 1, 16, 3, 3, false);    // degree ring
-    d.drawText(tx + 6, 17, "C");
+    d.drawRect(tx + 1, 15, 3, 3, false);    // degree ring
+    d.drawText(tx + 6, 16, "C");
 
     // Right column: humidity + pressure, stacked.
     snprintf(buf, sizeof(buf), "RH:%.0f%%", data.humidity);
     d.drawText(80, 15, buf);
     snprintf(buf, sizeof(buf), "%.0fhPa", data.pressure);
-    d.drawText(80, 27, buf);
+    d.drawText(80, 25, buf);
 
+    // Secondary row: sound + voltage, or an alarm banner.
     if (_buzzer->isTriggered()) {
-        // Alarm takes over the secondary row for visibility.
-        d.drawRect(0, 36, d.width() - 1, 11, false);
-        d.drawText(6, 38, "!! ALARM AKTIF !!");
+        d.drawRect(0, 33, d.width() - 1, 11, false);
+        d.drawText(6, 35, "!! ALARM AKTIF !!");
     } else {
         snprintf(buf, sizeof(buf), "Suara:%.1fdB", data.soundDb);
-        d.drawText(2, 38, buf);
+        d.drawText(2, 34, buf);
         snprintf(buf, sizeof(buf), "%.2fV", data.voltage);
-        d.drawText(92, 38, buf);
+        d.drawText(92, 34, buf);
     }
 
-    // Footer: status on the left, navigation hint on the right.
-    d.drawLine(0, 50, d.width() - 1, 50);
-    if (_buzzer->isTriggered()) {
-        d.drawText(0, 54, "<Mute");
-    } else if (_wifi->isConnected()) {
-        d.drawText(0, 54, _wifi->getIp().substring(0, 15).c_str());
+    // WiFi status line — IP when online, plain hint otherwise.
+    if (_wifi->isConnected()) {
+        snprintf(buf, sizeof(buf), "WiFi %s", _wifi->getIp().c_str());
+        d.drawText(0, 43, String(buf).substring(0, 21).c_str());
     } else {
-        d.drawText(0, 54, "WiFi: -");
+        d.drawText(0, 43, "WiFi: belum konek");
     }
-    d.drawText(92, 54, "Menu >");
+
+    // Footer: button hints aligned to the three physical buttons. Only the
+    // Center button opens the menu, so the "Menu" label sits in the centre
+    // (boxed like a key) directly above it — Left mutes an active alarm.
+    drawButtonBar(d, _buzzer->isTriggered() ? "Mute" : "", "Menu", "");
 }
 
 void MainScreen::drawMenu(IDisplay& d) {
-    // 6 items fit between the header divider (y12) and the bottom edge.
+    // 5 items fit between the header divider (y12) and the hint bar (y51);
+    // 7px rows keep the last selection box clear of the bar's divider.
     for (int i = 0; i < MENU_COUNT; i++) {
-        int y = 14 + i * 8;
+        int y = 14 + i * 7;
         if (i == _menuIdx)
             d.drawRect(0, y - 1, d.width() - 1, 9, false);  // selection box
         d.drawText(3, y, MENU_ITEMS[i]);
+    }
+    // Button hints mapped to the three physical buttons below the screen.
+    drawButtonBar(d, "Atas", "Pilih", "Bawah");
+}
+
+// One label per physical button, each aligned over its button: left flush
+// left, right flush right, center centred and boxed so it reads as a key.
+void MainScreen::drawButtonBar(IDisplay& d, const char* left, const char* center,
+                               const char* right) {
+    const int y = 55;
+    d.drawLine(0, 51, d.width() - 1, 51);
+    if (left && *left)
+        d.drawText(0, y, left);
+    if (right && *right)
+        d.drawText(d.width() - 6 * (int)strlen(right), y, right);
+    if (center && *center) {
+        int w = 6 * (int)strlen(center);
+        int x = (d.width() - w) / 2;
+        d.drawRect(x - 3, y - 2, w + 5, 11, false);
+        d.drawText(x, y, center);
     }
 }
 
@@ -130,11 +153,10 @@ void MainScreen::onButton(ButtonEvent evt) {
             break;
         case ButtonEvent::Center:
             if (_menuIdx == 0) _navTo = NavTo::WifiPortal;
-            if (_menuIdx == 1) _navTo = NavTo::WifiScan;
-            if (_menuIdx == 2) _navTo = NavTo::Sensor;
-            if (_menuIdx == 3) _navTo = NavTo::Compass;
-            if (_menuIdx == 4) _navTo = NavTo::Stock;
-            if (_menuIdx == 5) _navTo = NavTo::Settings;
+            if (_menuIdx == 1) _navTo = NavTo::Sensor;
+            if (_menuIdx == 2) _navTo = NavTo::Compass;
+            if (_menuIdx == 3) _navTo = NavTo::Stock;
+            if (_menuIdx == 4) _navTo = NavTo::Settings;
             break;
         default:
             break;

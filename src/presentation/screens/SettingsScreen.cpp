@@ -16,8 +16,10 @@ void SettingsScreen::enter() {
     _fields[4] = { "HumMaks", &_cfg.humidMax, 5.0f,   30.0f, 100.0f };
     _fields[5] = { "dBMaks",  &_cfg.soundMax, 5.0f,   30.0f, 130.0f };
     _fields[6] = { "VoltMin", &_cfg.voltMin,  0.1f,    2.5f,   4.2f };
-    _fields[7] = { "Simpan",  nullptr,        0,      0,       0    };
-    _fields[8] = { "Batal",   nullptr,        0,      0,       0    };
+    _fields[7] = { "BatMin",  &_cfg.battMin,  0.1f,    2.5f,   4.0f };
+    _fields[8] = { "BatMax",  &_cfg.battMax,  0.1f,    3.0f,   4.3f };
+    _fields[9]  = { "Simpan", nullptr,        0,      0,       0    };
+    _fields[10] = { "Batal",  nullptr,        0,      0,       0    };
 }
 
 void SettingsScreen::update(IDisplay& d) {

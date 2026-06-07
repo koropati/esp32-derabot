@@ -10,7 +10,6 @@ UIManager::UIManager(IDisplay* display, SensorUseCase* sensor,
     , _stock(stock)
     , _power(power)
     , _mainScreen(sensor, wifi, buzzer, power)
-    , _wifiScanScreen(wifi)
     , _wifiPortalScreen(wifi, buzzer)
     , _sensorScreen(sensor)
     , _settingsScreen(buzzer, power)
@@ -18,9 +17,7 @@ UIManager::UIManager(IDisplay* display, SensorUseCase* sensor,
     , _compassScreen(compass)
 {}
 
-UIManager::~UIManager() {
-    delete _wifiPassScreen;
-}
+UIManager::~UIManager() {}
 
 void UIManager::begin() {
     _input.begin();
@@ -89,7 +86,6 @@ void UIManager::_handleNavigation() {
         if (nav != MainScreen::NavTo::None) {
             _mainScreen.clearNav();
             switch (nav) {
-                case MainScreen::NavTo::WifiScan:   transitionTo(AppScreen::WifiScan);   break;
                 case MainScreen::NavTo::WifiPortal: transitionTo(AppScreen::WifiPortal); break;
                 case MainScreen::NavTo::Sensor:     transitionTo(AppScreen::Sensor);     break;
                 case MainScreen::NavTo::Compass:    transitionTo(AppScreen::Compass);    break;
@@ -115,46 +111,15 @@ void UIManager::_handleDone() {
     IScreen* scr = currentScreen();
     if (!scr || !scr->isDone()) return;
 
-    if (_current == AppScreen::WifiScan) {
-        if (_wifiScanScreen.wantConnect()) {
-            // User selected a network — go to password entry
-            delete _wifiPassScreen;
-            _wifiPassScreen = new WifiPasswordScreen(_wifiScanScreen.selectedSsid());
-            transitionTo(AppScreen::WifiPassword);
-            return;
-        }
-        // User pressed back — return to menu
-        transitionTo(AppScreen::Main);
-        _mainScreen.enterMenu();
-
-    } else if (_current == AppScreen::WifiPassword) {
-        if (_wifiPassScreen && _wifiPassScreen->confirmed()) {
-            // Attempt connection — return to main (not menu) after action
-            if (_buzzer) _buzzer->stopClick();  // avoid a stuck click during blocking connect
-            _display->clear();
-            _display->drawText(15, 20, "Menghubungkan...");
-            _display->flush();
-            _wifi->connect(_wifiScanScreen.selectedSsid(),
-                           _wifiPassScreen->password());
-            transitionTo(AppScreen::Main);
-        } else {
-            // Cancelled — return to menu
-            transitionTo(AppScreen::Main);
-            _mainScreen.enterMenu();
-        }
-
-    } else {
-        // SensorScreen, SettingsScreen: back always returns to menu
-        transitionTo(AppScreen::Main);
-        _mainScreen.enterMenu();
-    }
+    // Every sub-screen (WiFi portal, Sensor, Compass, Stock, Settings) returns
+    // to the menu when it signals done (Back).
+    transitionTo(AppScreen::Main);
+    _mainScreen.enterMenu();
 }
 
 IScreen* UIManager::currentScreen() {
     switch (_current) {
         case AppScreen::Main:         return &_mainScreen;
-        case AppScreen::WifiScan:     return &_wifiScanScreen;
-        case AppScreen::WifiPassword: return _wifiPassScreen;
         case AppScreen::WifiPortal:   return &_wifiPortalScreen;
         case AppScreen::Sensor:       return &_sensorScreen;
         case AppScreen::Compass:      return &_compassScreen;

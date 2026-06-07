@@ -26,11 +26,11 @@ private:
         float       min;
         float       max;
     };
-    // Alarm toggle, Eco toggle, 5 value fields, then the two action rows below.
-    static constexpr int FIELD_COUNT  = 9;
-    static constexpr int ALARM_FIELD  = 0;  // "Alarm"  (toggle)
-    static constexpr int ECO_FIELD    = 1;  // "Hemat"  (toggle)
-    static constexpr int SAVE_FIELD   = 7;  // "Simpan"
-    static constexpr int CANCEL_FIELD = 8;  // "Batal"
+    // Alarm toggle, Eco toggle, 7 value fields, then the two action rows below.
+    static constexpr int FIELD_COUNT  = 11;
+    static constexpr int ALARM_FIELD  = 0;   // "Alarm"  (toggle)
+    static constexpr int ECO_FIELD    = 1;   // "Hemat"  (toggle)
+    static constexpr int SAVE_FIELD   = 9;   // "Simpan"
+    static constexpr int CANCEL_FIELD = 10;  // "Batal"
     Field _fields[FIELD_COUNT];
 };

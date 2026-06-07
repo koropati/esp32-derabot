@@ -370,16 +370,20 @@ Menampilkan:
 - **Data sensor**: suhu, kelembaban, tekanan, desibel, tegangan
 - **Status bawah**: IP address (jika terhubung) atau "ALARM aktif"
 
+Baris paling bawah adalah **bar tombol**: tiap label sejajar dengan tombol
+fisik di bawah layar (Kiri / Tengah / Kanan), jadi label "Menu" yang berkotak
+berada tepat di atas tombol **Tengah** — itulah pemicu menu.
+
 ```
 ┌─────────────────────────┐
 │▮▮▮▮• DeraBot    87% ▓▓▓│
 │─────────────────────────│
-│T:28.5C H:65%           │
-│P:1013hPa               │
-│dB:45.2  V:3.85V        │
-│192.168.1.105           │
+│28.5°C       RH:65%     │
+│             1013hPa    │
+│Suara:45.2dB     3.85V  │
+│WiFi 192.168.1.105      │
 │─────────────────────────│
-│      Menu >            │
+│Mute      [Menu]        │
 └─────────────────────────┘
 ```
 
@@ -395,32 +399,32 @@ Menampilkan:
 ```
 ┌─────────────────────────┐
 │── MENU ─────────────────│
-│> WiFi Setup            │
+│> WiFi via HP           │
 │  Sensor Detail         │
+│  Compass               │
+│  Bursa IHSG            │
 │  Settings              │
-│─────────────────────────│
-│<Atas >Bwh  Ctr:Pilih  │
+│Atas      [Pilih] Bawah │
 └─────────────────────────┘
 ```
 
-**Tombol di menu:**
+**Tombol di menu** (label di bar bawah sejajar tombol fisiknya):
 | Tombol | Fungsi |
 |--------|--------|
 | Kiri | Naik / Keluar menu (jika di item paling atas) |
-| Kanan | Turun (berputar) |
 | Tengah | Masuk ke sub-menu yang dipilih |
+| Kanan | Turun (berputar) |
 
-### WiFi Setup
+### WiFi via HP
 
-1. Device otomatis scan jaringan WiFi di sekitar
-2. Navigasi daftar dengan Kiri (naik) / Kanan (turun)
-3. Tekan **Tengah** untuk pilih jaringan → masuk layar password
-4. Tekan **Kiri** di posisi paling atas → kembali ke menu
+Penyetelan WiFi dilakukan dari ponsel lewat portal web (tidak ada lagi input
+password pakai tombol — fitur itu dihapus untuk menghemat flash):
 
-**Layar Input Password:**
-- Kiri / Kanan: scroll karakter
-- Tengah: tambah karakter ke password
-- **Long Tengah (2.5 detik)**: submit (kirim password) atau batal jika kosong
+1. Pilih **WiFi via HP** di menu → device menyalakan access point
+2. Sambungkan WiFi ponsel ke SSID yang tertera di layar
+3. Buka browser ke alamat IP yang tertera, pilih jaringan & isi password
+4. Setelah submit, device menyimpan kredensial dan menyambung otomatis
+5. Tekan **Kiri** untuk keluar dari portal
 
 ### Sensor Detail
 
@@ -482,7 +486,15 @@ Menu → **Settings**
 | HumMaks | 85.0 | % | Alarm jika kelembaban di atas nilai ini |
 | dBMaks | 80.0 | dB | Alarm jika kebisingan di atas nilai ini |
 | VoltMin | 3.3 | V | Alarm jika tegangan baterai di bawah nilai ini |
+| BatMin | 3.2 | V | Tegangan yang dibaca sebagai **0%** (baterai kosong) |
+| BatMax | 3.7 | V | Tegangan yang dibaca sebagai **100%** (baterai penuh) |
 | **[ SIMPAN ]** | — | — | Simpan semua pengaturan |
+
+> **Kalibrasi indikator baterai:** `BatMin`/`BatMax` memetakan tegangan terukur
+> ke persentase indikator. Kalau ganti baterai dengan karakteristik berbeda
+> (mis. masih kuat di 3.0 V), turunkan `BatMin` agar indikator tidak cepat 0%.
+> Nilai default (3.2–3.7 V) sama dengan perilaku lama, jadi setelan kamu tidak
+> berubah sampai diatur ulang.
 
 ### Cara Mengatur
 
@@ -550,9 +562,10 @@ esp32-derabot/
     │   ├── InputHandler        # State machine tombol
     │   └── screens/            # Layar individual
     │       ├── MainScreen      # Halaman utama + menu
-    │       ├── WifiScanScreen  # Scan & pilih WiFi
-    │       ├── WifiPasswordScreen # Input password WiFi
+    │       ├── WifiPortalScreen # Setup WiFi via portal HP
     │       ├── SensorScreen    # Detail data sensor
+    │       ├── CompassScreen   # Kompas GY-271
+    │       ├── StockScreen     # Bursa IHSG
     │       └── SettingsScreen  # Pengaturan alarm
     └── main.cpp                # Setup & loop utama
 ```

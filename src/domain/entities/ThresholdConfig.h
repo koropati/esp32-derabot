@@ -8,4 +8,9 @@ struct ThresholdConfig {
     float soundMax = 80.0f;   // dB
     float voltMin  = 0.0f;    // V (0.0 = disabled, set from Settings screen)
     bool  enabled  = false;  // Off by default — enable from Settings screen
+
+    // Battery gauge calibration — maps measured voltage to the 0-100% indicator.
+    // Adjust from Settings to match a different cell's empty/full points.
+    float battMin  = 3.2f;    // V read as 0%  (battery empty)
+    float battMax  = 3.7f;    // V read as 100% (battery full)
 };

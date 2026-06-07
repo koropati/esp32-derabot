@@ -1,8 +1,6 @@
 #pragma once
 #include "InputHandler.h"
 #include "screens/MainScreen.h"
-#include "screens/WifiScanScreen.h"
-#include "screens/WifiPasswordScreen.h"
 #include "screens/WifiPortalScreen.h"
 #include "screens/SensorScreen.h"
 #include "screens/SettingsScreen.h"
@@ -15,7 +13,7 @@
 #include "../application/StockUseCase.h"
 #include "../application/PowerUseCase.h"
 
-enum class AppScreen { Main, WifiScan, WifiPassword, WifiPortal, Sensor, Compass, Stock, Settings };
+enum class AppScreen { Main, WifiPortal, Sensor, Compass, Stock, Settings };
 
 class UIManager {
 public:
@@ -49,8 +47,6 @@ private:
     AppScreen           _current = AppScreen::Main;
 
     MainScreen          _mainScreen;
-    WifiScanScreen      _wifiScanScreen;
-    WifiPasswordScreen* _wifiPassScreen = nullptr;
     WifiPortalScreen    _wifiPortalScreen;
     SensorScreen        _sensorScreen;
     SettingsScreen      _settingsScreen;

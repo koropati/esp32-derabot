@@ -9,34 +9,30 @@
 //   - WiFi radio modem-sleep
 //   - OLED dims then turns off after inactivity (wakes on button / alarm)
 //
-// Eco is the OR of two sources: a manual toggle (persisted in NVS) and an
-// automatic low-battery trigger (with hysteresis). The screen-blanking only
-// applies while eco is active; otherwise the display stays fully on.
+// Eco is controlled solely by the manual toggle in Settings (persisted in NVS),
+// so turning it ON/OFF is fully deterministic. Screen-blanking only applies
+// while eco is active; otherwise the display stays fully on and bright.
 class PowerUseCase {
 public:
     PowerUseCase(IDisplay* display, WifiUseCase* wifi, IStorage* storage);
 
     void begin();                 // load eco pref, apply hardware state
     void setEco(bool on);         // manual toggle from Settings (persists)
-    bool eco()    const { return _ecoManual; }  // manual flag (Settings display)
-    bool active() const { return _active; }     // effective eco state (ECO badge)
+    bool eco()    const { return _eco; }   // manual flag (Settings display)
+    bool active() const { return _eco; }   // effective eco state (ECO badge)
 
-    void onBattery(int pct);      // auto low-battery activation (hysteresis)
     void wake();                  // user/alarm activity: screen on + bright, reset idle
     void tick(bool keepAwake);    // call every loop: handle dim/off timers
     bool screenOn() const { return _screenOn; }
 
 private:
-    void _recompute();            // active = manual || autoLow
-    void _setActive(bool on);     // apply CPU/WiFi when effective state flips
+    void _apply(bool on);         // apply CPU/WiFi for an eco state change
 
     IDisplay*    _display;
     WifiUseCase* _wifi;
     IStorage*    _storage;
 
-    bool _ecoManual = false;      // persisted manual preference
-    bool _autoLow   = false;      // auto low-battery trigger
-    bool _active    = false;      // effective eco state
+    bool _eco = false;            // persisted manual preference == effective state
 
     bool     _screenOn      = true;
     bool     _dimmed        = false;

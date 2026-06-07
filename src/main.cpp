@@ -186,6 +186,16 @@ void loop() {
         lastSensorMs = now;
         sensorUC->read();
 
+        // Battery % from the user-configurable gauge range (Settings: BatMin/BatMax)
+        {
+            ThresholdConfig th = buzzerUC->getThreshold();
+            float span = th.battMax - th.battMin;
+            int pct = (span > 0.05f)
+                ? (int)((sensorUC->lastData().voltage - th.battMin) / span * 100.0f)
+                : 0;
+            sensorUC->setBatteryPct(constrain(pct, 0, 100));
+        }
+
         // Enrich with live WiFi signal data
         if (wifiUC->isConnected()) {
             int32_t rssi = wifiUC->getRssi();
@@ -195,9 +205,6 @@ void loop() {
 
         // Check thresholds and trigger buzzer if needed
         buzzerUC->check(sensorUC->lastData());
-
-        // Feed battery level to power manager — auto-enables eco when low
-        powerUC->onBattery(sensorUC->lastData().batteryPct);
     }
 
     // MQTT — keep the session serviced, publish on schedule when connected.

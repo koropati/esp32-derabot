@@ -23,15 +23,12 @@ bool VoltSensor::read(SensorData& out) {
     float vPin = (sumMv / static_cast<float>(Config::Voltage::SAMPLES)) / 1000.0f;
 
     // Un-divide to recover battery voltage, then apply calibration factor.
+    // batteryPct is derived later (in the main loop) from the user-configurable
+    // gauge range, so here we only report the measured voltage.
     float ratio = (Config::Voltage::R1 + Config::Voltage::R2) / Config::Voltage::R2;
     out.voltage = vPin * ratio * Config::Voltage::CAL;
 
-    float pct = (out.voltage - Config::Voltage::V_MIN) /
-                (Config::Voltage::V_MAX - Config::Voltage::V_MIN) * 100.0f;
-    out.batteryPct = constrain(static_cast<int>(pct), 0, 100);
-
     if (Config::Voltage::DEBUG)
-        Serial.printf("[VOLT] pin=%.3fV  battery=%.3fV  pct=%d%%\n",
-                      vPin, out.voltage, out.batteryPct);
+        Serial.printf("[VOLT] pin=%.3fV  battery=%.3fV\n", vPin, out.voltage);
     return true;
 }
