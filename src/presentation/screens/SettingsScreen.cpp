@@ -15,7 +15,7 @@ void SettingsScreen::enter() {
     _fields[3] = { "TempMin", &_cfg.tempMin,  1.0f,  -40.0f,  60.0f };
     _fields[4] = { "HumMaks", &_cfg.humidMax, 5.0f,   30.0f, 100.0f };
     _fields[5] = { "dBMaks",  &_cfg.soundMax, 5.0f,   30.0f, 130.0f };
-    _fields[6] = { "VoltMin", &_cfg.voltMin,  0.1f,    2.5f,   4.2f };
+    _fields[6] = { "VoltMin", &_cfg.voltMin,  0.1f,    0.0f,   4.2f };  // 0.0 = nonaktif
     _fields[7] = { "BatMin",  &_cfg.battMin,  0.1f,    2.5f,   4.0f };
     _fields[8] = { "BatMax",  &_cfg.battMax,  0.1f,    3.0f,   4.3f };
     _fields[9]  = { "Simpan", nullptr,        0,      0,       0    };
