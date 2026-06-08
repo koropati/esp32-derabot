@@ -111,7 +111,7 @@ void BuzzerUseCase::silence() {
 
 void BuzzerUseCase::click() {
     if (_triggered || _melody) return;  // don't interrupt the alarm/melody
-    _buzzer->on(2500);               // start immediately — no blocking
+    _buzzer->on(2500, _vol(128));    // start immediately — no blocking
     _clickUntilMs = millis() + 20;  // tick() will stop it after 20ms
 }
 
@@ -121,7 +121,7 @@ void BuzzerUseCase::playStartup() {
     for (int i = 0; i < BOOT_LEN; i++) {
         const Note& n = BOOT[i];
         if (n.freq == 0) _buzzer->off();
-        else             _buzzer->on(n.freq, 90);
+        else             _buzzer->on(n.freq, _vol(90));
         delay(n.ms);
     }
     _buzzer->off();
@@ -170,7 +170,7 @@ void BuzzerUseCase::tick() {
             }
             const Note& n = _melody[_melodyIdx++];
             if (n.freq == 0) _buzzer->off();
-            else             _buzzer->on(n.freq, _melodyDuty);
+            else             _buzzer->on(n.freq, _vol(_melodyDuty));
             _noteUntilMs = now + n.ms;
         }
         return;

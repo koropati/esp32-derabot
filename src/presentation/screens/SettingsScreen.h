@@ -30,14 +30,14 @@ private:
         float       min;
         float       max;
     };
-    // Alarm/Eco/WakeGerak toggles, Saham selector, 7 value fields, then the two
+    // Alarm/Eco/WakeGerak toggles, Saham selector, 8 value fields, then the two
     // action rows below.
-    static constexpr int FIELD_COUNT  = 13;
+    static constexpr int FIELD_COUNT  = 14;
     static constexpr int ALARM_FIELD  = 0;   // "Alarm"     (toggle)
     static constexpr int ECO_FIELD    = 1;   // "Hemat"     (toggle)
     static constexpr int WAKE_FIELD   = 2;   // "WakeGerak" (toggle)
     static constexpr int SAHAM_FIELD  = 3;   // "Saham"     (selector)
-    static constexpr int SAVE_FIELD   = 11;  // "Simpan"
-    static constexpr int CANCEL_FIELD = 12;  // "Batal"
+    static constexpr int SAVE_FIELD   = 12;  // "Simpan"
+    static constexpr int CANCEL_FIELD = 13;  // "Batal"
     Field _fields[FIELD_COUNT];
 };

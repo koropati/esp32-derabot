@@ -23,8 +23,9 @@ void SettingsScreen::enter() {
     _fields[8]  = { "VoltMin",   &_cfg.voltMin,  0.1f,    0.0f,   4.2f };  // 0.0 = nonaktif
     _fields[9]  = { "BatMin",    &_cfg.battMin,  0.1f,    2.5f,   4.0f };
     _fields[10] = { "BatMax",    &_cfg.battMax,  0.1f,    3.0f,   4.3f };
-    _fields[11] = { "Simpan",    nullptr,        0,      0,       0    };
-    _fields[12] = { "Batal",     nullptr,        0,      0,       0    };
+    _fields[11] = { "Volume",    &_cfg.volume,   5.0f,    0.0f, 100.0f };
+    _fields[12] = { "Simpan",    nullptr,        0,      0,       0    };
+    _fields[13] = { "Batal",     nullptr,        0,      0,       0    };
 }
 
 void SettingsScreen::update(IDisplay& d) {

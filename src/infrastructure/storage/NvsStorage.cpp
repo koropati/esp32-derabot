@@ -34,6 +34,7 @@ bool NvsStorage::saveThreshold(const ThresholdConfig& cfg) {
     _prefs.putFloat("vmin",  cfg.voltMin);
     _prefs.putFloat("bmin",  cfg.battMin);
     _prefs.putFloat("bmax",  cfg.battMax);
+    _prefs.putFloat("vol",   cfg.volume);
     _prefs.putBool("en",     cfg.enabled);
     _prefs.end();
     return true;
@@ -61,6 +62,7 @@ bool NvsStorage::loadThreshold(ThresholdConfig& cfg) {
     cfg.voltMin  = _prefs.getFloat("vmin",  3.3f);
     cfg.battMin  = _prefs.getFloat("bmin",  3.2f);  // default = old hardcoded gauge
     cfg.battMax  = _prefs.getFloat("bmax",  3.7f);
+    cfg.volume   = _prefs.getFloat("vol",   40.0f); // default = quieter than 100%
     cfg.enabled  = _prefs.getBool("en",     false);
     _prefs.end();
     return true;

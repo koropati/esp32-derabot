@@ -32,6 +32,14 @@ private:
     bool _detectCharging(float voltage);
     void _startMelody(const Note* m, int len, bool loop, uint8_t duty);
 
+    // Scale a sound's base PWM duty (0-255) by the master volume setting (0-100%).
+    // 100% keeps the original loudness; 0% mutes. Applied to every buzzer tone so
+    // clicks, the alarm, and all jingles follow one shared volume.
+    uint8_t _vol(uint8_t baseDuty) const {
+        long d = (long)baseDuty * (long)_threshold.volume / 100;
+        return (uint8_t)constrain(d, 0L, 255L);
+    }
+
     IBuzzer*        _buzzer;
     IStorage*       _storage;
     ThresholdConfig _threshold;
