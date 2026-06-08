@@ -106,7 +106,7 @@ void SettingsScreen::onButton(ButtonEvent evt) {
             else                                  // action row: step forward a field
                 _field = (_field + 1) % FIELD_COUNT;
             break;
-        case ButtonEvent::Center:
+        case ButtonEvent::Center:  // (Volume preview handled after the switch)
             if (_field == SAVE_FIELD) {
                 _buzzer->updateThreshold(_cfg);       // save alarm thresholds
                 _power->setEco(_eco);                 // save power-save preference
@@ -122,4 +122,10 @@ void SettingsScreen::onButton(ButtonEvent evt) {
         default:
             break;
     }
+
+    // Live volume preview: when the Volume slider changes, beep at the new level
+    // straight away so it can be heard before saving (the normal click feedback
+    // still uses the previously saved volume).
+    if (_field == VOLUME_FIELD && (evt == ButtonEvent::Left || evt == ButtonEvent::Right))
+        _buzzer->testBeep(_cfg.volume);
 }

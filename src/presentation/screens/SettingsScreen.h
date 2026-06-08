@@ -37,6 +37,7 @@ private:
     static constexpr int ECO_FIELD    = 1;   // "Hemat"     (toggle)
     static constexpr int WAKE_FIELD   = 2;   // "WakeGerak" (toggle)
     static constexpr int SAHAM_FIELD  = 3;   // "Saham"     (selector)
+    static constexpr int VOLUME_FIELD = 11;  // "Volume"    (value, previews on change)
     static constexpr int SAVE_FIELD   = 12;  // "Simpan"
     static constexpr int CANCEL_FIELD = 13;  // "Batal"
     Field _fields[FIELD_COUNT];

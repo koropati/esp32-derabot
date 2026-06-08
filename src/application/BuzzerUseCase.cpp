@@ -143,6 +143,18 @@ void BuzzerUseCase::playStockTune() {
     _startMelody(STOCK_TUNE, STOCK_TUNE_LEN, /*loop=*/false, /*duty=*/70);
 }
 
+// Short blocking beep at an explicit volume. The normal click() uses the *saved*
+// volume, so while the user is still adjusting the Volume slider in Settings this
+// lets them hear the new level immediately (before it is saved).
+void BuzzerUseCase::testBeep(float volumePercent) {
+    if (_triggered || _melody) return;            // never cut the alarm/jingle
+    long d = (long)128 * (long)volumePercent / 100;
+    _buzzer->on(2500, (uint8_t)constrain(d, 0L, 255L));
+    delay(60);
+    _buzzer->off();
+    _clickUntilMs = 0;                            // we already turned it off
+}
+
 void BuzzerUseCase::_startMelody(const Note* m, int len, bool loop, uint8_t duty) {
     _melody      = m;
     _melodyLen   = len;

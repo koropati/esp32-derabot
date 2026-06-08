@@ -23,6 +23,7 @@ public:
     void playStartup();    // short power-on blip (blocking, boot only)
     void playWifiTune();   // gentle ascending jingle (WiFi setup portal)
     void playStockTune();  // gentle descending jingle (loading IHSG data)
+    void testBeep(float volumePercent);  // short beep at an explicit volume (Settings preview)
     void updateThreshold(const ThresholdConfig& cfg);
     ThresholdConfig getThreshold() const { return _threshold; }
     bool isTriggered() const { return _triggered; }
