@@ -16,5 +16,7 @@ public:
     virtual bool loadMotionWake(bool& on) = 0;
     virtual bool saveStock(const String& symbol) = 0;  // selected market ticker
     virtual bool loadStock(String& symbol) = 0;
+    virtual bool saveHighScore(int score) = 0;
+    virtual bool loadHighScore(int& score) = 0;
     virtual void clear() = 0;
 };

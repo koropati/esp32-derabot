@@ -10,6 +10,8 @@ public:
     virtual void drawText(int x, int y, const String& text, uint8_t size = 1) = 0;
     virtual void drawLine(int x0, int y0, int x1, int y1) = 0;
     virtual void drawRect(int x, int y, int w, int h, bool filled = false) = 0;
+    virtual void drawCircle(int x, int y, int r, bool filled = false) = 0;
+    virtual void drawRoundRect(int x, int y, int w, int h, int r, bool filled = false) = 0;
     virtual void drawBitmap(int x, int y, const uint8_t* bmp, int w, int h) = 0;
     virtual int  width()  const = 0;
     virtual int  height() const = 0;

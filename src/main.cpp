@@ -114,7 +114,7 @@ void setup() {
 
     // I2C shared bus for BME280 and OLED
     Wire.begin(Config::Pins::I2C_SDA, Config::Pins::I2C_SCL);
-    Wire.setClock(100000);  // 100kHz for stable I2C
+    Wire.setClock(400000);  // 400kHz Fast I2C for high-FPS display updates
     delay(100);             // let bus stabilize
 
     // Scan I2C for diagnosis
@@ -174,7 +174,7 @@ void setup() {
 
     // UI
     bootScreen("Antarmuka...", 85);
-    ui = new UIManager(&display, sensorUC, wifiUC, buzzerUC, stockUC, forexUC, powerUC, &compass);
+    ui = new UIManager(&display, sensorUC, wifiUC, buzzerUC, stockUC, forexUC, powerUC, &compass, &storage);
     ui->begin();
 
     // Try auto-connect to saved WiFi

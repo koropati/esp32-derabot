@@ -7,6 +7,7 @@
 #include "screens/StockScreen.h"
 #include "screens/ForexScreen.h"
 #include "screens/CompassScreen.h"
+#include "screens/GameScreen.h"
 #include "../domain/interfaces/IDisplay.h"
 #include "../application/SensorUseCase.h"
 #include "../application/WifiUseCase.h"
@@ -15,7 +16,7 @@
 #include "../application/ForexUseCase.h"
 #include "../application/PowerUseCase.h"
 
-enum class AppScreen { Main, WifiPortal, Sensor, Compass, Stock, Forex, Settings };
+enum class AppScreen { Main, WifiPortal, Sensor, Compass, Stock, Forex, Game, Settings };
 
 class UIManager {
 public:
@@ -26,7 +27,8 @@ public:
               StockUseCase*  stock,
               ForexUseCase*  forex,
               PowerUseCase*  power,
-              Gy271Compass*  compass);
+              Gy271Compass*  compass,
+              IStorage*      storage);
     ~UIManager();
     void begin();
     void pollButtons();  // call every loop iteration — fast, no I2C
@@ -57,4 +59,5 @@ private:
     StockScreen         _stockScreen;
     ForexScreen         _forexScreen;
     CompassScreen       _compassScreen;
+    GameScreen          _gameScreen;
 };

@@ -2,29 +2,49 @@
 #include <Arduino.h>
 
 static const char* MENU_ITEMS[] = {
-    "WiFi via HP", "Sensor Detail", "Compass", "Bursa Saham", "Kurs Rupiah", "Settings"
+    "WiFi via HP", "Sensor Detail", "Compass", "Bursa Saham", "Kurs Rupiah", "Main Game", "Settings"
 };
-static constexpr int MENU_COUNT = 6;
+static constexpr int MENU_COUNT = 7;
 
 MainScreen::MainScreen(SensorUseCase* sensor, WifiUseCase* wifi, BuzzerUseCase* buzzer,
-                       PowerUseCase* power)
-    : _sensor(sensor), _wifi(wifi), _buzzer(buzzer), _power(power) {}
+                       PowerUseCase* power, Gy271Compass* compass)
+    : _sensor(sensor)
+    , _wifi(wifi)
+    , _buzzer(buzzer)
+    , _power(power)
+    , _compass(compass)
+    , _mochi(buzzer, power, compass)
+{}
 
 void MainScreen::enter() {
     _menuMode = false;
     _navTo    = NavTo::None;
+    _mochi.begin();
+    _buttonPressedThisFrame = false;
+}
+
+void MainScreen::tick() {
+    bool pressed = _buttonPressedThisFrame;
+    _buttonPressedThisFrame = false;
+    
+    // Update Mochi Face logic (shake, sensors, and wifi status)
+    // Only enable shake detection if NOT in menu mode
+    _mochi.tick(_sensor->lastData(), pressed, _wifi->isConnected(), !_menuMode);
 }
 
 void MainScreen::update(IDisplay& d) {
-    const SensorData& data = _sensor->lastData();
     d.clear();
-    drawHeader(d, data);
-    d.drawLine(0, 12, d.width() - 1, 12);
-
-    if (_menuMode)
+    
+    if (_menuMode) {
+        const SensorData& data = _sensor->lastData();
+        drawHeader(d, data);
+        d.drawLine(0, 12, d.width() - 1, 12);
         drawMenu(d);
-    else
-        drawSummary(d, data);
+    } else {
+        // Draw full-screen Mochi Face animation
+        _mochi.draw(d);
+    }
+    
     d.flush();
 }
 
@@ -57,51 +77,9 @@ void MainScreen::drawHeader(IDisplay& d, const SensorData& data) {
     if (batW > 0) d.drawRect(104, 3, batW, 6, true);  // battery fill
 }
 
-void MainScreen::drawSummary(IDisplay& d, const SensorData& data) {
-    char buf[24];
-
-    // Hero: temperature in large type with a small degree mark + unit.
-    snprintf(buf, sizeof(buf), "%.1f", data.temperature);
-    d.drawText(2, 15, buf, 2);
-    int tx = 2 + 12 * (int)strlen(buf);     // pixel just past the big number
-    d.drawRect(tx + 1, 15, 3, 3, false);    // degree ring
-    d.drawText(tx + 6, 16, "C");
-
-    // Right column: humidity + pressure, stacked.
-    snprintf(buf, sizeof(buf), "RH:%.0f%%", data.humidity);
-    d.drawText(80, 15, buf);
-    snprintf(buf, sizeof(buf), "%.0fhPa", data.pressure);
-    d.drawText(80, 25, buf);
-
-    // Secondary row: sound + voltage, or an alarm banner.
-    if (_buzzer->isTriggered()) {
-        d.drawRect(0, 33, d.width() - 1, 11, false);
-        d.drawText(6, 35, "!! ALARM AKTIF !!");
-    } else {
-        snprintf(buf, sizeof(buf), "Suara:%.1fdB", data.soundDb);
-        d.drawText(2, 34, buf);
-        snprintf(buf, sizeof(buf), "%.2fV", data.voltage);
-        d.drawText(92, 34, buf);
-    }
-
-    // WiFi status line — IP when online, plain hint otherwise.
-    if (_wifi->isConnected()) {
-        snprintf(buf, sizeof(buf), "WiFi %s", _wifi->getIp().c_str());
-        d.drawText(0, 43, String(buf).substring(0, 21).c_str());
-    } else {
-        d.drawText(0, 43, "WiFi: belum konek");
-    }
-
-    // Footer: button hints aligned to the three physical buttons. Only the
-    // Center button opens the menu, so the "Menu" label sits in the centre
-    // (boxed like a key) directly above it — Left mutes an active alarm.
-    drawButtonBar(d, _buzzer->isTriggered() ? "Mute" : "", "Menu", "");
-}
-
 void MainScreen::drawMenu(IDisplay& d) {
     // Roomy rows for legibility: only 4 fit between the header divider (y12) and
-    // the hint bar (y51), so scroll a window to keep the cursor visible. A small
-    // scroll arrow hints there are more items above/below the current page.
+    // the hint bar (y51), so scroll a window to keep the cursor visible.
     constexpr int VISIBLE = 4;
     constexpr int START_Y = 15;
     constexpr int STEP    = 9;
@@ -141,21 +119,33 @@ void MainScreen::drawButtonBar(IDisplay& d, const char* left, const char* center
 }
 
 void MainScreen::onButton(ButtonEvent evt) {
-    if (!_menuMode) {
-        if (evt == ButtonEvent::Left && _buzzer->isTriggered()) {
-            _buzzer->silence();   // Left silences alarm from main view
-            return;
-        }
+    _buttonPressedThisFrame = true;
+    
+    // If Mochi is sleeping, any button wakes him up
+    if (_mochi.getState() == MochiState::Sleeping) {
+        _mochi.wakeUp();
         if (evt == ButtonEvent::Center) {
-            _menuMode = true;     // Center always opens menu
+            _menuMode = true;
             _menuIdx  = 0;
         }
         return;
     }
+    
+    if (!_menuMode) {
+        if (evt == ButtonEvent::Center) {
+            _menuMode = true;     // Center always opens menu
+            _menuIdx  = 0;
+        } else if (evt == ButtonEvent::Left || evt == ButtonEvent::Right) {
+            // Left/Right button click in home page: Mochi gets happy and smiles!
+            _mochi.setState(MochiState::Happy);
+        }
+        return;
+    }
+    
     switch (evt) {
         case ButtonEvent::Left:
             if (_menuIdx == 0)
-                _menuMode = false;  // Left at top item = exit menu
+                _menuMode = false;  // Left at top item = exit menu (back to Mochi face)
             else
                 _menuIdx--;
             break;
@@ -163,12 +153,14 @@ void MainScreen::onButton(ButtonEvent evt) {
             _menuIdx = (_menuIdx + 1) % MENU_COUNT;
             break;
         case ButtonEvent::Center:
+            Serial.printf("[MainScreen] Center clicked, _menuIdx=%d, MENU_COUNT=%d\n", _menuIdx, MENU_COUNT);
             if (_menuIdx == 0) _navTo = NavTo::WifiPortal;
             if (_menuIdx == 1) _navTo = NavTo::Sensor;
             if (_menuIdx == 2) _navTo = NavTo::Compass;
             if (_menuIdx == 3) _navTo = NavTo::Stock;
             if (_menuIdx == 4) _navTo = NavTo::Forex;
-            if (_menuIdx == 5) _navTo = NavTo::Settings;
+            if (_menuIdx == 5) _navTo = NavTo::Game;
+            if (_menuIdx == 6) _navTo = NavTo::Settings;
             break;
         default:
             break;

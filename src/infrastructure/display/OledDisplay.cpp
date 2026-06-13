@@ -58,6 +58,22 @@ void OledDisplay::drawRect(int x, int y, int w, int h, bool filled) {
         _d->drawRect(x, y, w, h, SSD1306_WHITE);
 }
 
+void OledDisplay::drawCircle(int x, int y, int r, bool filled) {
+    if (!_d) return;
+    if (filled)
+        _d->fillCircle(x, y, r, SSD1306_WHITE);
+    else
+        _d->drawCircle(x, y, r, SSD1306_WHITE);
+}
+
+void OledDisplay::drawRoundRect(int x, int y, int w, int h, int r, bool filled) {
+    if (!_d) return;
+    if (filled)
+        _d->fillRoundRect(x, y, w, h, r, SSD1306_WHITE);
+    else
+        _d->drawRoundRect(x, y, w, h, r, SSD1306_WHITE);
+}
+
 void OledDisplay::drawBitmap(int x, int y, const uint8_t* bmp, int w, int h) {
     if (_d) _d->drawBitmap(x, y, bmp, w, h, SSD1306_WHITE);
 }

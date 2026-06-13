@@ -25,6 +25,30 @@ static const Note STOCK_TUNE[] = {
 };
 static const int STOCK_TUNE_LEN = sizeof(STOCK_TUNE) / sizeof(STOCK_TUNE[0]);
 
+// Happy: C6, E6, G6, C7
+static const Note MOCHI_HAPPY[] = {
+    {1047, 80}, {1319, 80}, {1568, 80}, {2093, 150}
+};
+static const int MOCHI_HAPPY_LEN = sizeof(MOCHI_HAPPY)/sizeof(Note);
+
+// Angry: F#5 (short), F#5 (short), F5 (longer)
+static const Note MOCHI_ANGRY[] = {
+    {370, 60}, {0, 20}, {370, 60}, {0, 20}, {349, 150}
+};
+static const int MOCHI_ANGRY_LEN = sizeof(MOCHI_ANGRY)/sizeof(Note);
+
+// Dizzy: alternating high/low sliding sound
+static const Note MOCHI_DIZZY[] = {
+    {880, 70}, {1174, 70}, {880, 70}, {1174, 70}, {880, 120}
+};
+static const int MOCHI_DIZZY_LEN = sizeof(MOCHI_DIZZY)/sizeof(Note);
+
+// Sleepy: E5 (long), C5 (long)
+static const Note MOCHI_SLEEPY[] = {
+    {659, 200}, {523, 300}
+};
+static const int MOCHI_SLEEPY_LEN = sizeof(MOCHI_SLEEPY)/sizeof(Note);
+
 // Power-on: short rising blip G5->C6. Replaces the long Nokia jingle at boot —
 // quick and light on memory; the full melody is reserved for the alarm.
 static const Note BOOT[] = {
@@ -141,6 +165,26 @@ void BuzzerUseCase::playWifiTune() {
 void BuzzerUseCase::playStockTune() {
     if (_triggered) return;
     _startMelody(STOCK_TUNE, STOCK_TUNE_LEN, /*loop=*/false, /*duty=*/70);
+}
+
+void BuzzerUseCase::playMochiHappy() {
+    if (_triggered) return;
+    _startMelody(MOCHI_HAPPY, MOCHI_HAPPY_LEN, false, 80);
+}
+
+void BuzzerUseCase::playMochiAngry() {
+    if (_triggered) return;
+    _startMelody(MOCHI_ANGRY, MOCHI_ANGRY_LEN, false, 100);
+}
+
+void BuzzerUseCase::playMochiDizzy() {
+    if (_triggered) return;
+    _startMelody(MOCHI_DIZZY, MOCHI_DIZZY_LEN, false, 80);
+}
+
+void BuzzerUseCase::playMochiSleepy() {
+    if (_triggered) return;
+    _startMelody(MOCHI_SLEEPY, MOCHI_SLEEPY_LEN, false, 60);
 }
 
 // Short blocking beep at an explicit volume. The normal click() uses the *saved*

@@ -1,5 +1,6 @@
 #include "PowerUseCase.h"
 #include "../config/config.h"
+#include <Wire.h>
 
 PowerUseCase::PowerUseCase(IDisplay* display, WifiUseCase* wifi, IStorage* storage)
     : _display(display), _wifi(wifi), _storage(storage) {}
@@ -10,6 +11,7 @@ void PowerUseCase::begin() {
     _lastActivityMs = millis();
     // Apply the hardware state deterministically on boot.
     setCpuFrequencyMhz(_eco ? Config::Power::CPU_LO_MHZ : Config::Power::CPU_HI_MHZ);
+    Wire.begin(Config::Pins::I2C_SDA, Config::Pins::I2C_SCL);
     _wifi->setPowerSave(_eco);
     _display->setOn(true);
     _display->dim(false);
@@ -40,10 +42,12 @@ void PowerUseCase::holdAwake(bool on) {
     _hold = on;
     if (on) {
         setCpuFrequencyMhz(Config::Power::CPU_HI_MHZ);  // full speed for AP + web server
+        Wire.begin(Config::Pins::I2C_SDA, Config::Pins::I2C_SCL);
         wake();                                          // screen on + bright
     } else {
         // Back to whatever eco dictates; screen returns to the normal idle timers.
         setCpuFrequencyMhz(_eco ? Config::Power::CPU_LO_MHZ : Config::Power::CPU_HI_MHZ);
+        Wire.begin(Config::Pins::I2C_SDA, Config::Pins::I2C_SCL);
     }
 }
 
@@ -66,6 +70,7 @@ void PowerUseCase::tick(bool keepAwake) {
 void PowerUseCase::_apply(bool on) {
     _eco = on;
     setCpuFrequencyMhz(on ? Config::Power::CPU_LO_MHZ : Config::Power::CPU_HI_MHZ);
+    Wire.begin(Config::Pins::I2C_SDA, Config::Pins::I2C_SCL);
     _wifi->setPowerSave(on);
     if (!on) wake();   // leaving eco — restore a bright, awake screen
 }

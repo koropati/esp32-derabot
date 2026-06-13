@@ -4,6 +4,7 @@ static constexpr const char* NS_WIFI  = "derabot_wifi";
 static constexpr const char* NS_TRIG  = "derabot_trig";
 static constexpr const char* NS_PWR   = "derabot_pwr";
 static constexpr const char* NS_STOCK = "derabot_stk";
+static constexpr const char* NS_GAME  = "derabot_game";
 
 bool NvsStorage::begin() { return true; }
 
@@ -110,9 +111,24 @@ bool NvsStorage::loadStock(String& symbol) {
     return !symbol.isEmpty();
 }
 
+bool NvsStorage::saveHighScore(int score) {
+    _prefs.begin(NS_GAME, false);
+    _prefs.putInt("hscore", score);
+    _prefs.end();
+    return true;
+}
+
+bool NvsStorage::loadHighScore(int& score) {
+    _prefs.begin(NS_GAME, true);
+    score = _prefs.getInt("hscore", 0);
+    _prefs.end();
+    return true;
+}
+
 void NvsStorage::clear() {
     _prefs.begin(NS_WIFI,  false); _prefs.clear(); _prefs.end();
     _prefs.begin(NS_TRIG,  false); _prefs.clear(); _prefs.end();
     _prefs.begin(NS_PWR,   false); _prefs.clear(); _prefs.end();
     _prefs.begin(NS_STOCK, false); _prefs.clear(); _prefs.end();
+    _prefs.begin(NS_GAME,  false); _prefs.clear(); _prefs.end();
 }

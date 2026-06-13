@@ -133,13 +133,13 @@ namespace Power {
     // sensor; THRESHOLD = Manhattan delta in raw LSB that counts as movement
     // (higher = needs a bigger move, fewer false wakes).
     constexpr uint32_t MOTION_POLL_MS   = 150;
-    constexpr int      MOTION_THRESHOLD = 500;
+    constexpr int      MOTION_THRESHOLD = 100;
 }
 
 namespace Timing {
     constexpr uint32_t SENSOR_MS    = 2000;
     constexpr uint32_t MQTT_MS      = 5000;
-    constexpr uint32_t DISPLAY_MS   = 100;
+    constexpr uint32_t DISPLAY_MS   = 40;
     constexpr uint32_t DEBOUNCE_MS = 25;    // sustained-LOW window to confirm a real press
     // A line that stays LOW longer than this is treated as stuck / noisy: it
     // stops emitting and waits for a clean release, so a faulty button can never

@@ -15,6 +15,8 @@ public:
     bool loadMotionWake(bool& on) override;
     bool saveStock(const String& symbol) override;
     bool loadStock(String& symbol) override;
+    bool saveHighScore(int score) override;
+    bool loadHighScore(int& score) override;
     void clear() override;
 
 private:
